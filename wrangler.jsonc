@@ -34,6 +34,7 @@
   },
   "vars": {
     "AUTH_ORIGIN": "https://auth.kaf.sh",
+    "MCEVAL_ADMIN_USER_IDS": "517599684961894400",
   },
   "routes": [
     {
