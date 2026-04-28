@@ -1,0 +1,41 @@
+/**
+ * Cloudflare Worker config for MCEval.
+ * Built with OpenNext for Cloudflare and bound to D1.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mceval",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-04-28",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mceval",
+      "database_id": "fffb2516-c2d8-457b-ad4d-98e595cf8d92",
+      "migrations_dir": "./db/migrations",
+    },
+  ],
+  "images": {
+    "binding": "IMAGES",
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "mceval",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+  "routes": [
+    {
+      "pattern": "mceval.kaf.sh",
+      "custom_domain": true,
+    },
+  ],
+}

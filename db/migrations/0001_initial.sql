@@ -1,0 +1,2 @@
+-- Initial D1 migration for MCEval.
+-- Add application tables here when the evaluator stops being a toy.
