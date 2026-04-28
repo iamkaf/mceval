@@ -23,8 +23,18 @@ export const flagshipModels = [
     icon: "/icons/svgl/moonshot.svg",
     iconAlt: "Kimi",
   },
-  { provider: "Z.Ai", model: "GLM-5.1", initials: "Z" },
-  { provider: "MiniMax", model: "MiniMax M2.7", initials: "M" },
+  {
+    provider: "Z.Ai",
+    model: "GLM-5.1",
+    icon: "/icons/providers/z-ai.svg",
+    iconAlt: "Z.Ai",
+  },
+  {
+    provider: "MiniMax",
+    model: "MiniMax M2.7",
+    icon: "/icons/simple-icons/minimax.svg",
+    iconAlt: "MiniMax",
+  },
   {
     provider: "DeepSeek",
     model: "DeepSeek V4 Pro",
@@ -37,6 +47,17 @@ export const flagshipModels = [
     icon: "/icons/svgl/xai.svg",
     iconAlt: "xAI",
   },
-  { provider: "Alibaba", model: "Qwen3-Max", initials: "Q" },
-  { provider: "Xiaomi", model: "MiMo-V2.5-Pro", initials: "小" },
+  {
+    provider: "Alibaba",
+    model: "Qwen3.6 Max Preview",
+    modelId: "qwen/qwen3.6-max-preview",
+    icon: "/icons/providers/qwen.svg",
+    iconAlt: "Qwen",
+  },
+  {
+    provider: "Xiaomi",
+    model: "MiMo-V2.5-Pro",
+    icon: "/icons/simple-icons/xiaomi.svg",
+    iconAlt: "Xiaomi",
+  },
 ];

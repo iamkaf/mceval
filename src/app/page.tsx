@@ -65,11 +65,7 @@ export default function Home() {
                     <tr className="border-b border-kumo-hairline last:border-0" key={entry.provider}>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <ModelIcon
-                            icon={entry.icon}
-                            iconAlt={entry.iconAlt}
-                            initials={entry.initials}
-                          />
+                          <ModelIcon icon={entry.icon} iconAlt={entry.iconAlt} />
                           <div className="space-y-1">
                             <Text>{entry.model}</Text>
                             <Text variant="secondary" size="sm">
@@ -124,11 +120,7 @@ export default function Home() {
                   {flagshipModels.map((entry) => (
                     <div className="grid grid-cols-[8rem_1fr] items-center gap-4 py-3 first:pt-0 last:pb-0" key={entry.provider}>
                       <div className="flex items-center gap-3">
-                        <ModelIcon
-                          icon={entry.icon}
-                          iconAlt={entry.iconAlt}
-                          initials={entry.initials}
-                        />
+                        <ModelIcon icon={entry.icon} iconAlt={entry.iconAlt} />
                         <Text variant="secondary" size="sm">
                           {entry.provider}
                         </Text>
