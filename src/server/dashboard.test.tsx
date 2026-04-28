@@ -1,6 +1,7 @@
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { renderDashboardHtml } from "./dashboard";
+import { DashboardView } from "../app/dashboard/_components/dashboard-view";
 
 const auth = {
   result: {
@@ -26,9 +27,13 @@ const logout = {
   body: "returnTo=https%3A%2F%2Fmceval.kaf.sh%2F",
 };
 
-describe("dashboard rendering", () => {
+function renderDashboard(runs: React.ComponentProps<typeof DashboardView>["runs"]): string {
+  return renderToStaticMarkup(<DashboardView auth={auth} logout={logout} runs={runs} />);
+}
+
+describe("dashboard view", () => {
   it("renders the authenticated user and Uriel logout form", () => {
-    const html = renderDashboardHtml({ auth, logout, runs: [] });
+    const html = renderDashboard([]);
 
     expect(html).toContain("MCEval Dashboard");
     expect(html).toContain("Kaf &lt;admin&gt;");
@@ -38,33 +43,29 @@ describe("dashboard rendering", () => {
   });
 
   it("renders an empty benchmark state with the import command", () => {
-    const html = renderDashboardHtml({ auth, logout, runs: [] });
+    const html = renderDashboard([]);
 
     expect(html).toContain("No benchmark runs imported yet");
     expect(html).toContain("corepack pnpm run eval:import-run .mceval/runs/&lt;runId&gt;.json");
   });
 
   it("renders imported benchmark runs", () => {
-    const html = renderDashboardHtml({
-      auth,
-      logout,
-      runs: [
-        {
-          id: "benchmark_<1>",
-          suiteId: "minecraft-core",
-          suiteName: "Minecraft Core Bench",
-          startedAt: "2026-04-28T00:00:00.000Z",
-          completedAt: "2026-04-28T00:01:00.000Z",
-          modelCount: 2,
-          resultCount: 8,
-          errorCount: 0,
-          accuracy: 0.875,
-          totalCost: 0.0063,
-          meanLatencyMs: 1200,
-          models: [],
-        },
-      ],
-    });
+    const html = renderDashboard([
+      {
+        id: "benchmark_<1>",
+        suiteId: "minecraft-core",
+        suiteName: "Minecraft Core Bench",
+        startedAt: "2026-04-28T00:00:00.000Z",
+        completedAt: "2026-04-28T00:01:00.000Z",
+        modelCount: 2,
+        resultCount: 8,
+        errorCount: 0,
+        accuracy: 0.875,
+        totalCost: 0.0063,
+        meanLatencyMs: 1200,
+        models: [],
+      },
+    ]);
 
     expect(html).toContain("Minecraft Core Bench");
     expect(html).toContain("87.5%");
