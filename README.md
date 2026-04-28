@@ -2,7 +2,7 @@
 
 Minecraft model evaluation harness and public leaderboard shell for `mceval.kaf.sh`.
 
-The app is deliberately static right now. Benchmark runs are CLI-first, persisted as local JSON artifacts, and imported into D1 after validation. Auth, dashboard, and live frontend data come next.
+The public homepage is static. Benchmark runs are CLI-first, persisted as local JSON artifacts, and imported into D1 after validation. The authenticated dashboard is read-only and uses Uriel for session checks.
 
 ## Setup
 
@@ -14,12 +14,13 @@ corepack pnpm dev
 Local benchmark execution and dashboard auth use `.env.local`:
 
 ```bash
-OPENROUTER_API_KEY=...
-AUTH_ORIGIN=https://auth.kaf.sh
-URIEL_SESSION_API_TOKEN=...
+OPENROUTER_API_KEY=***
+AUTH_ORIGIN=https:...f.sh
+URIEL_SESSION_API_TOKEN=***
+MCEVAL_ADMIN_USER_IDS=discord-user-1,discord-user-2 # optional; unset allows any authenticated Uriel user
 ```
 
-`AUTH_ORIGIN` is the shared Uriel sign-in service. `URIEL_SESSION_API_TOKEN` is the server-to-server token used for `/session` checks.
+`AUTH_ORIGIN` is the shared Uriel sign-in service. `URIEL_SESSION_API_TOKEN` is the server-to-server token used for `/session` checks. `MCEVAL_ADMIN_USER_IDS` is an optional app-level authorization allowlist; Uriel proves identity, mceval owns authorization.
 
 Do not commit env files, generated run logs, import SQL, Wrangler state, build output, or dependency folders.
 
@@ -46,6 +47,15 @@ python -m json.tool /tmp/mceval-benchmark.json >/dev/null
 ```
 
 Run logs are written to `.mceval/runs/<runId>.json`.
+
+## Dashboard
+
+`/dashboard` is protected by Uriel and reads imported benchmark runs from D1. It is intentionally read-only: the browser does not execute benchmarks or call OpenRouter.
+
+- Run list: `https://mceval.kaf.sh/dashboard`
+- Run detail: `https://mceval.kaf.sh/dashboard/runs/<runId>`
+
+If no D1 runs are present, the dashboard shows an import command instead of placeholder data.
 
 ## D1 import
 

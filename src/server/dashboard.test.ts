@@ -7,7 +7,7 @@ const auth = {
     authenticated: true as const,
     user: {
       userId: "discord-user-1",
-      displayName: "Kaf",
+      displayName: "Kaf <admin>",
       username: "kaf",
       avatarUrl: null,
     },
@@ -21,20 +21,55 @@ const auth = {
   },
 };
 
+const logout = {
+  action: "https://auth.kaf.sh/logout",
+  body: "returnTo=https%3A%2F%2Fmceval.kaf.sh%2F",
+};
+
 describe("dashboard rendering", () => {
   it("renders the authenticated user and Uriel logout form", () => {
-    const html = renderDashboardHtml({
-      auth,
-      logout: {
-        action: "https://auth.kaf.sh/logout",
-        body: "returnTo=https%3A%2F%2Fmceval.kaf.sh%2F",
-      },
-    });
+    const html = renderDashboardHtml({ auth, logout, runs: [] });
 
     expect(html).toContain("MCEval Dashboard");
-    expect(html).toContain("Kaf");
+    expect(html).toContain("Kaf &lt;admin&gt;");
     expect(html).toContain('action="https://auth.kaf.sh/logout"');
     expect(html).toContain('name="returnTo"');
     expect(html).toContain('value="https://mceval.kaf.sh/"');
+  });
+
+  it("renders an empty benchmark state with the import command", () => {
+    const html = renderDashboardHtml({ auth, logout, runs: [] });
+
+    expect(html).toContain("No benchmark runs imported yet");
+    expect(html).toContain("corepack pnpm run eval:import-run .mceval/runs/&lt;runId&gt;.json");
+  });
+
+  it("renders imported benchmark runs", () => {
+    const html = renderDashboardHtml({
+      auth,
+      logout,
+      runs: [
+        {
+          id: "benchmark_<1>",
+          suiteId: "minecraft-core",
+          suiteName: "Minecraft Core Bench",
+          startedAt: "2026-04-28T00:00:00.000Z",
+          completedAt: "2026-04-28T00:01:00.000Z",
+          modelCount: 2,
+          resultCount: 8,
+          errorCount: 0,
+          accuracy: 0.875,
+          totalCost: 0.0063,
+          meanLatencyMs: 1200,
+          models: [],
+        },
+      ],
+    });
+
+    expect(html).toContain("Minecraft Core Bench");
+    expect(html).toContain("87.5%");
+    expect(html).toContain("$0.006300");
+    expect(html).toContain('/dashboard/runs/benchmark_%3C1%3E');
+    expect(html).toContain("benchmark_&lt;1&gt;");
   });
 });

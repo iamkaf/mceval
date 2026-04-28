@@ -1,14 +1,19 @@
 import { authorizeDashboardUser } from "@/server/auth/authorization";
 import { createProtectedResponse, createMcevalUrielClient } from "@/server/auth/uriel";
-import { renderDashboardHtml } from "@/server/dashboard";
-import { listRecentBenchmarkRuns } from "@/server/db/benchmarks";
+import { getBenchmarkRunDetail } from "@/server/db/benchmarks";
 import { getMcevalRuntimeEnv } from "@/server/runtime/cloudflare";
+import { renderMissingRunHtml, renderRunDetailHtml } from "@/server/run-detail";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+type RouteContext = {
+  params: Promise<{ runId: string }>;
+};
+
+export async function GET(request: Request, context: RouteContext) {
   const runtimeEnv = getMcevalRuntimeEnv();
   const client = createMcevalUrielClient(runtimeEnv);
+  const { runId } = await context.params;
 
   return createProtectedResponse({
     request,
@@ -23,13 +28,16 @@ export async function GET(request: Request) {
         return forbidden;
       }
 
-      const runs = runtimeEnv.DB ? await listRecentBenchmarkRuns(runtimeEnv.DB) : [];
       const logout = client.buildLogoutRequest?.(new URL("/", request.url).toString()) ?? {
-        action: `${process.env.AUTH_ORIGIN}/logout`,
+        action: `${runtimeEnv.AUTH_ORIGIN}/logout`,
         body: `returnTo=${encodeURIComponent(new URL("/", request.url).toString())}`,
       };
 
-      return new Response(renderDashboardHtml({ auth: { result: auth.result }, logout, runs }), {
+      const detail = runtimeEnv.DB ? await getBenchmarkRunDetail(runtimeEnv.DB, runId) : null;
+      const html = detail ? renderRunDetailHtml({ detail, logout }) : renderMissingRunHtml(runId, logout);
+
+      return new Response(html, {
+        status: detail ? 200 : 404,
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     },
