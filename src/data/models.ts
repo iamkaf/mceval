@@ -37,11 +37,6 @@ export const flagshipModels = [
     icon: "/icons/svgl/xai.svg",
     iconAlt: "xAI",
   },
-  {
-    provider: "Meta",
-    model: "Llama 4 Maverick",
-    icon: "/icons/svgl/meta.svg",
-    iconAlt: "Meta",
-  },
+  { provider: "Alibaba", model: "Qwen3-Max", initials: "Q" },
   { provider: "Xiaomi", model: "MiMo-V2.5-Pro", initials: "小" },
 ];
