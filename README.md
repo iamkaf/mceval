@@ -11,11 +11,15 @@ corepack pnpm install
 corepack pnpm dev
 ```
 
-Local benchmark execution requires an OpenRouter key in `.env.local`:
+Local benchmark execution and dashboard auth use `.env.local`:
 
 ```bash
 OPENROUTER_API_KEY=...
+AUTH_ORIGIN=https://auth.kaf.sh
+URIEL_SESSION_API_TOKEN=...
 ```
+
+`AUTH_ORIGIN` is the shared Uriel sign-in service. `URIEL_SESSION_API_TOKEN` is the server-to-server token used for `/session` checks.
 
 Do not commit env files, generated run logs, import SQL, Wrangler state, build output, or dependency folders.
 

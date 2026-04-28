@@ -32,6 +32,9 @@
   "observability": {
     "enabled": true,
   },
+  "vars": {
+    "AUTH_ORIGIN": "https://auth.kaf.sh",
+  },
   "routes": [
     {
       "pattern": "mceval.kaf.sh",

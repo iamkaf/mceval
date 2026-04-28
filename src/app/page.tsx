@@ -18,7 +18,9 @@ export default function Home() {
             <Text variant="secondary">Minecraft AI evaluation</Text>
           </div>
           <Text variant="mono-secondary">
-            mceval.kaf.sh
+            <a className="transition hover:text-kumo-default" href="/dashboard">
+              Dashboard
+            </a>
           </Text>
         </header>
 
