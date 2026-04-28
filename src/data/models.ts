@@ -1,7 +1,7 @@
 export const flagshipModels = [
   {
     provider: "OpenAI",
-    model: "GPT-5.5 Pro",
+    model: "GPT-5.5",
     icon: "/icons/svgl/openai.svg",
     iconAlt: "OpenAI",
   },
