@@ -72,7 +72,7 @@ export function TokenUsageBarChart({ data }: { data: TokenBarItem[] }) {
           stack: "total",
           data: sorted.map((d) => ({
             value: d.promptTokens,
-            itemStyle: { color: "#60a5fa", opacity: 0.6 },
+            itemStyle: { color: "#3b82f6" },
           })),
           barWidth: 16,
           label: {
@@ -90,7 +90,7 @@ export function TokenUsageBarChart({ data }: { data: TokenBarItem[] }) {
           stack: "total",
           data: sorted.map((d) => ({
             value: d.completionTokens,
-            itemStyle: { color: "#3b82f6", opacity: 0.9 },
+            itemStyle: { color: "#22c55e" },
           })),
           barWidth: 16,
           label: {

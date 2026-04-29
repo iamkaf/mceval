@@ -18,6 +18,9 @@ export function LeaderboardScatterChart({ data }: { data: ScatterPoint[] }) {
 
     const chart = echarts.init(containerRef.current, undefined, { renderer: "canvas" });
 
+    const costs = data.map((d) => d.cost).sort((a, b) => a - b);
+    const midCost = costs[Math.floor(costs.length / 2)] ?? costs[costs.length - 1] ?? 0;
+
     const option = {
       backgroundColor: "transparent",
       grid: { top: 40, right: 40, bottom: 50, left: 60 },
@@ -66,13 +69,22 @@ export function LeaderboardScatterChart({ data }: { data: ScatterPoint[] }) {
             hideOverlap: true,
             moveOverlap: "shiftY",
           },
+          markLine: {
+            silent: true,
+            symbol: "none",
+            lineStyle: { type: "dashed", color: "#333", width: 1 },
+            data: [
+              { xAxis: midCost, label: { show: false } },
+              { yAxis: 50, label: { show: false } },
+            ],
+          },
           markArea: {
             silent: true,
-            itemStyle: { color: "rgba(34, 197, 94, 0.04)" },
+            itemStyle: { color: "rgba(34, 197, 94, 0.06)" },
             data: [
               [
                 { xAxis: 0, yAxis: 50 },
-                { xAxis: "max", yAxis: 100 },
+                { xAxis: midCost, yAxis: 100 },
               ],
             ],
           },
