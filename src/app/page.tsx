@@ -1,11 +1,17 @@
 import { Surface } from "@cloudflare/kumo/components/surface";
 import { Text } from "@cloudflare/kumo/components/text";
+import { CostBreakdownBarChart } from "@/components/cost-breakdown-bar-chart";
 import { LeaderboardBarChart } from "@/components/leaderboard-bar-chart";
 import { LeaderboardScatterChart } from "@/components/leaderboard-scatter-chart";
+import { TokenUsageBarChart } from "@/components/token-usage-bar-chart";
 import { ModelIcon } from "@/components/model-icon";
 import { evaluatedModels, findEvaluatedModel } from "@/data/models";
 import { minecraftCoreSuite } from "@/eval/fixtures/minecraft-core";
-import { listLatestLeaderboard, listLatestLeaderboardByCategory } from "@/server/db/benchmarks";
+import {
+  getModelTokenUsage,
+  listLatestLeaderboard,
+  listLatestLeaderboardByCategory,
+} from "@/server/db/benchmarks";
 import type { LeaderboardEntry } from "@/server/db/benchmarks";
 import { getMcevalRuntimeEnv } from "@/server/runtime/cloudflare";
 
@@ -38,7 +44,7 @@ function getModelColor(modelId: string): string {
 }
 
 export default async function Home() {
-  const { run, entries, categoryMap } = await getPublicLeaderboard();
+  const { run, entries, categoryMap, tokenUsage } = await getPublicLeaderboard();
 
   const scatterData = entries
     .map((entry) => {
@@ -53,12 +59,41 @@ export default async function Home() {
     })
     .filter((d): d is NonNullable<typeof d> => d !== null);
 
+  const tokenBarData = tokenUsage
+    .map((t) => {
+      const model = findEvaluatedModel(t.modelId);
+      if (!model) return null;
+      return {
+        name: model.displayName,
+        promptTokens: t.promptTokens,
+        completionTokens: t.completionTokens,
+        color: getModelColor(t.modelId),
+      };
+    })
+    .filter((d): d is NonNullable<typeof d> => d !== null);
+
+  const costBarData = entries
+    .map((entry) => {
+      const model = findEvaluatedModel(entry.modelId);
+      if (!model) return null;
+      return {
+        name: model.displayName,
+        cost: entry.totalCost,
+        color: getModelColor(entry.modelId),
+      };
+    })
+    .filter((d): d is NonNullable<typeof d> => d !== null);
+
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
         <Hero run={run} />
         <LeaderboardBarChart entries={entries} models={evaluatedModels} />
         <LeaderboardTable run={run} entries={entries} categoryMap={categoryMap} />
+        <div className="mb-16 grid gap-6 md:grid-cols-2">
+          <TokenUsageChart data={tokenBarData} />
+          <CostBreakdownChart data={costBarData} />
+        </div>
         <IntelligenceVsCostChart data={scatterData} />
         <Methodology />
         <SampleManifest />
@@ -100,6 +135,54 @@ function Hero({ run }: { run: { id: string | null; completedAt: string | null } 
           ) : null}
         </div>
       </div>
+    </section>
+  );
+}
+
+function TokenUsageChart({
+  data,
+}: {
+  data: Array<{ name: string; promptTokens: number; completionTokens: number; color: string }>;
+}) {
+  if (data.length === 0) return null;
+
+  return (
+    <section>
+      <div className="mb-4">
+        <Text as="h2" variant="heading3">
+          Token usage
+        </Text>
+        <Text variant="secondary" size="sm">
+          Prompt and completion tokens per model.
+        </Text>
+      </div>
+      <Surface className="overflow-hidden rounded-xl border border-kumo-hairline bg-kumo-base p-4">
+        <TokenUsageBarChart data={data} />
+      </Surface>
+    </section>
+  );
+}
+
+function CostBreakdownChart({
+  data,
+}: {
+  data: Array<{ name: string; cost: number; color: string }>;
+}) {
+  if (data.length === 0) return null;
+
+  return (
+    <section>
+      <div className="mb-4">
+        <Text as="h2" variant="heading3">
+          Cost breakdown
+        </Text>
+        <Text variant="secondary" size="sm">
+          Total evaluation cost per model.
+        </Text>
+      </div>
+      <Surface className="overflow-hidden rounded-xl border border-kumo-hairline bg-kumo-base p-4">
+        <CostBreakdownBarChart data={data} />
+      </Surface>
     </section>
   );
 }
@@ -334,11 +417,19 @@ async function getPublicLeaderboard() {
   try {
     const env = getMcevalRuntimeEnv();
     if (!env.DB) {
-      return { run: { id: null, completedAt: null }, entries: [] as LeaderboardEntry[], categoryMap: new Map() };
+      return {
+        run: { id: null, completedAt: null },
+        entries: [] as LeaderboardEntry[],
+        categoryMap: new Map(),
+        tokenUsage: [],
+      };
     }
 
-    const { run, entries } = await listLatestLeaderboard(env.DB);
-    const categoryRows = await listLatestLeaderboardByCategory(env.DB);
+    const [{ run, entries }, categoryRows, tokenUsage] = await Promise.all([
+      listLatestLeaderboard(env.DB),
+      listLatestLeaderboardByCategory(env.DB),
+      getModelTokenUsage(env.DB),
+    ]);
 
     const categoryMap = new Map<string, Map<string, number | null>>();
     for (const row of categoryRows) {
@@ -352,9 +443,15 @@ async function getPublicLeaderboard() {
       run: { id: run?.id ?? null, completedAt: run?.completedAt ?? null },
       entries: entries.filter((entry) => findEvaluatedModel(entry.modelId)) as LeaderboardEntry[],
       categoryMap,
+      tokenUsage,
     };
   } catch {
-    return { run: { id: null, completedAt: null }, entries: [] as LeaderboardEntry[], categoryMap: new Map() };
+    return {
+      run: { id: null, completedAt: null },
+      entries: [] as LeaderboardEntry[],
+      categoryMap: new Map(),
+      tokenUsage: [],
+    };
   }
 }
 

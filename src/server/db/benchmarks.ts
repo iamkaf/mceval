@@ -82,6 +82,12 @@ export type ModelLatestResult = BenchmarkResultSummary & {
   metadata: Record<string, unknown> | null;
 };
 
+export type ModelTokenUsage = {
+  modelId: string;
+  promptTokens: number;
+  completionTokens: number;
+};
+
 type EvalRunRow = {
   id: string;
   suite_id: string;
@@ -304,6 +310,34 @@ export async function getModelLatestResults(db: D1DatabaseLike, modelId: string)
     input: row.input,
     target: row.target,
     metadata: row.metadata_json ? JSON.parse(row.metadata_json) : null,
+  }));
+}
+
+export async function getModelTokenUsage(db: D1DatabaseLike): Promise<ModelTokenUsage[]> {
+  const runs = await listRecentBenchmarkRuns(db, 1);
+  const run = runs[0];
+
+  if (!run) {
+    return [];
+  }
+
+  const { results = [] } = await db
+    .prepare(`
+      SELECT
+        model_id,
+        SUM(COALESCE(prompt_tokens, 0)) AS prompt_tokens,
+        SUM(COALESCE(completion_tokens, 0)) AS completion_tokens
+      FROM eval_results
+      WHERE run_id = ?
+      GROUP BY model_id
+    `)
+    .bind(run.id)
+    .all<{ model_id: string; prompt_tokens: number; completion_tokens: number }>();
+
+  return results.map((row) => ({
+    modelId: row.model_id,
+    promptTokens: row.prompt_tokens,
+    completionTokens: row.completion_tokens,
   }));
 }
 
