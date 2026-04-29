@@ -1,8 +1,7 @@
 import { getBenchmarkRunDetail } from "@/server/db/benchmarks";
 import { getRunJobProgress, listRunJobs } from "@/server/db/cloud-runs";
-
-import { MissingRunView, RunDetailView } from "../../_components/run-detail-view";
 import { requireDashboardAccess } from "../../_lib/auth";
+import { MissingRunView, RunDetailView } from "../../_components/run-detail-view";
 
 export const dynamic = "force-dynamic";
 
