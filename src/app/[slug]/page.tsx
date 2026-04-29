@@ -155,6 +155,18 @@ export default async function ModelCardPage({ params }: { params: Promise<{ slug
             ))}
           </div>
         </section>
+        <footer className="mt-10 border-t border-kumo-hairline pt-8 pb-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm font-mono text-kumo-subtle">
+              MCEval — Minecraft AI evaluation
+            </span>
+            <span className="text-sm font-mono text-kumo-subtle">
+              <a className="transition hover:text-kumo-default" href="/dashboard">
+                Dashboard
+              </a>
+            </span>
+          </div>
+        </footer>
       </div>
     </main>
   );

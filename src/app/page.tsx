@@ -97,6 +97,7 @@ export default async function Home() {
         <IntelligenceVsCostChart data={scatterData} />
         <Methodology />
         <SampleManifest />
+        <Footer />
       </div>
     </main>
   );
@@ -414,6 +415,23 @@ function SampleManifest() {
         ))}
       </div>
     </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="mt-20 border-t border-kumo-hairline pt-8 pb-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <span className="text-sm font-mono text-kumo-subtle">
+          MCEval — Minecraft AI evaluation
+        </span>
+        <span className="text-sm font-mono text-kumo-subtle">
+          <a className="transition hover:text-kumo-default" href="/dashboard">
+            Dashboard
+          </a>
+        </span>
+      </div>
+    </footer>
   );
 }
 
