@@ -1,9 +1,12 @@
 import { Surface } from "@cloudflare/kumo/components/surface";
 import { Text } from "@cloudflare/kumo/components/text";
+import { LeaderboardBarChart } from "@/components/leaderboard-bar-chart";
+import { LeaderboardScatterChart } from "@/components/leaderboard-scatter-chart";
 import { ModelIcon } from "@/components/model-icon";
 import { evaluatedModels, findEvaluatedModel } from "@/data/models";
 import { minecraftCoreSuite } from "@/eval/fixtures/minecraft-core";
 import { listLatestLeaderboard, listLatestLeaderboardByCategory } from "@/server/db/benchmarks";
+import type { LeaderboardEntry } from "@/server/db/benchmarks";
 import { getMcevalRuntimeEnv } from "@/server/runtime/cloudflare";
 
 export const revalidate = 60;
@@ -16,14 +19,47 @@ const categoryLabels: Record<string, string> = {
   ecosystem: "Ecosystem",
 };
 
+const PALETTE = [
+  "#1a1a1a",
+  "#c17848",
+  "#3b82f6",
+  "#1a1a1a",
+  "#3b82f6",
+  "#f43f5e",
+  "#3b82f6",
+  "#8b5cf6",
+  "#f97316",
+  "#22c55e",
+];
+
+function getModelColor(modelId: string): string {
+  const index = evaluatedModels.findIndex((m) => m.modelId === modelId);
+  return PALETTE[Math.max(0, index) % PALETTE.length];
+}
+
 export default async function Home() {
   const { run, entries, categoryMap } = await getPublicLeaderboard();
+
+  const scatterData = entries
+    .map((entry) => {
+      const model = findEvaluatedModel(entry.modelId);
+      if (!model) return null;
+      return {
+        name: model.displayName,
+        cost: entry.totalCost,
+        score: entry.accuracy ?? 0,
+        color: getModelColor(entry.modelId),
+      };
+    })
+    .filter((d): d is NonNullable<typeof d> => d !== null);
 
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
         <Hero run={run} />
-        <Leaderboard run={run} entries={entries} categoryMap={categoryMap} />
+        <LeaderboardBarChart entries={entries} models={evaluatedModels} />
+        <LeaderboardTable run={run} entries={entries} categoryMap={categoryMap} />
+        <IntelligenceVsCostChart data={scatterData} />
         <Methodology />
         <SampleManifest />
       </div>
@@ -68,7 +104,31 @@ function Hero({ run }: { run: { id: string | null; completedAt: string | null } 
   );
 }
 
-function Leaderboard({
+function IntelligenceVsCostChart({
+  data,
+}: {
+  data: Array<{ name: string; cost: number; score: number; color: string }>;
+}) {
+  if (data.length === 0) return null;
+
+  return (
+    <section className="mb-16">
+      <div className="mb-6">
+        <Text as="h2" variant="heading2">
+          Intelligence vs cost
+        </Text>
+        <Text variant="secondary" size="sm">
+          Overall score plotted against total evaluation cost. Top-left is the most attractive quadrant.
+        </Text>
+      </div>
+      <Surface className="overflow-hidden rounded-xl border border-kumo-hairline bg-kumo-base p-5">
+        <LeaderboardScatterChart data={data} />
+      </Surface>
+    </section>
+  );
+}
+
+function LeaderboardTable({
   run,
   entries,
   categoryMap,
@@ -78,6 +138,15 @@ function Leaderboard({
   categoryMap: Map<string, Map<string, number | null>>;
 }) {
   const scoreByModel = new Map(entries.map((e) => [e.modelId, e]));
+
+  const maxOverall = Math.max(...entries.map((e) => e.accuracy ?? 0), 0);
+  const maxByCategory = new Map<string, number>();
+  for (const cat of categoryNames) {
+    const values = Array.from(categoryMap.values())
+      .map((m) => m.get(cat))
+      .filter((v): v is number => v !== null && v !== undefined);
+    maxByCategory.set(cat, Math.max(...values, 0));
+  }
 
   return (
     <section className="mb-16">
@@ -130,12 +199,28 @@ function Leaderboard({
                         </div>
                       </a>
                     </td>
-                    {categoryNames.map((cat) => (
-                      <td key={cat} className="px-5 py-4 text-right text-kumo-subtle">
-                        {formatScore(catScores?.get(cat) ?? null)}
-                      </td>
-                    ))}
-                    <td className="px-5 py-4 text-right font-medium">
+                    {categoryNames.map((cat) => {
+                      const score = catScores?.get(cat) ?? null;
+                      const maxCat = maxByCategory.get(cat) ?? 0;
+                      const isMax = score !== null && Math.round(score * 100) === Math.round(maxCat * 100);
+                      return (
+                        <td
+                          key={cat}
+                          className={`px-5 py-4 text-right text-kumo-subtle ${isMax ? "font-bold text-kumo-default" : ""}`}
+                        >
+                          {formatScore(score)}
+                        </td>
+                      );
+                    })}
+                    <td
+                      className={`px-5 py-4 text-right font-medium ${
+                        entry?.accuracy !== null &&
+                        entry?.accuracy !== undefined &&
+                        Math.round(entry.accuracy * 100) === Math.round(maxOverall * 100)
+                          ? "font-bold text-kumo-default"
+                          : ""
+                      }`}
+                    >
                       {formatScore(entry?.accuracy ?? null)}
                     </td>
                     <td className="px-5 py-4 text-right text-kumo-subtle">
@@ -245,16 +330,6 @@ function SampleManifest() {
   );
 }
 
-type LeaderboardEntry = {
-  modelId: string;
-  scoredCount: number;
-  errorCount: number;
-  meanScore: number | null;
-  accuracy: number | null;
-  meanLatencyMs: number | null;
-  totalCost: number;
-};
-
 async function getPublicLeaderboard() {
   try {
     const env = getMcevalRuntimeEnv();
@@ -284,7 +359,7 @@ async function getPublicLeaderboard() {
 }
 
 function formatScore(score: number | null): string {
-  return typeof score === "number" ? `${Math.round(score * 100)}%` : "—";
+  return typeof score === "number" ? `${Math.round(score * 100)}` : "—";
 }
 
 function formatCost(cost: number): string {
