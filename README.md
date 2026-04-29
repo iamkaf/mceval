@@ -16,7 +16,9 @@ The project is intentionally boring where it matters:
 
 ## Status
 
-Early. The harness, model registry, run artifacts, D1 import path, and leaderboard shell exist. The benchmark sample set will grow by hand over time.
+Early, but live: the harness, evaluated model registry, run artifacts, D1 import path, public leaderboard, run comparison, model history pages, and CSV/JSON exports exist. The benchmark sample set is intentionally small and will grow by hand over time.
+
+The current public leaderboard is seeded by `benchmark_1777426615091`, a default model-set run with 6 models, 24 attempted results, 22 scored results, 2 provider empty-response errors, and `$0.03014268` total OpenRouter-reported cost.
 
 See [ROADMAP.md](./ROADMAP.md) for the path to a useful public release.
 
@@ -27,11 +29,12 @@ corepack pnpm install
 cp .env.example .env.local # or create .env.local manually
 ```
 
-Import or publish a run:
+Import an existing run artifact or publish a fresh run:
 
 ```bash
 corepack pnpm run mceval -- import .mceval/runs/<runId>.json
-corepack pnpm run mceval -- publish .mceval/runs/<runId>.json --remote
+corepack pnpm run mceval -- import .mceval/runs/<runId>.json --remote
+corepack pnpm run mceval -- publish --remote
 ```
 
 Public result views:
@@ -63,7 +66,7 @@ corepack pnpm run mceval -- run --model-set all
 Run one model:
 
 ```bash
-corepack pnpm run mceval -- run --model openai/gpt-4.1-mini
+corepack pnpm run mceval -- run --model deepseek/deepseek-v4-pro
 ```
 
 Run, import locally, and print the latest leaderboard in one command:
@@ -80,7 +83,7 @@ corepack pnpm run mceval -- samples         # validate benchmark samples
 corepack pnpm run mceval -- run             # execute default evaluated model set
 corepack pnpm run mceval -- import <run>    # import a run artifact into local D1
 corepack pnpm run mceval -- leaderboard     # query latest local leaderboard
-corepack pnpm run check                     # test, typecheck, lint, build, OpenNext build
+corepack pnpm run check                     # test, typecheck, lint, quality, build, OpenNext build
 ```
 
 Run artifacts are written to `.mceval/runs/<runId>.json`. Import SQL is written to `.mceval/imports/<runId>.sql`.
@@ -88,6 +91,8 @@ Run artifacts are written to `.mceval/runs/<runId>.json`. Import SQL is written 
 ## Model registry
 
 Models live in [`src/data/models.ts`](./src/data/models.ts). This is not a flagship list. It is the evaluated model registry: a curated set chosen to balance coverage and cost.
+
+The default model set currently contains the open-weight/OpenRouter-available models used for the public leaderboard: Kimi K2.6, GLM-5.1, MiniMax M2.7, DeepSeek V4 Pro, Qwen3.6 Max Preview, and MiMo-V2.5-Pro. The full registry also includes disabled-by-default frontier entries for ad hoc or exhaustive runs.
 
 Each model has:
 
@@ -160,6 +165,8 @@ Full gate:
 ```bash
 corepack pnpm run check
 ```
+
+`check` runs tests, typecheck, lint, repository quality checks, the Next build, and the OpenNext Cloudflare build.
 
 ## Repository hygiene
 
