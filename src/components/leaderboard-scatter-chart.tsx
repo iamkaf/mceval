@@ -20,7 +20,7 @@ export function LeaderboardScatterChart({ data }: { data: ScatterPoint[] }) {
 
     const option = {
       backgroundColor: "transparent",
-      grid: { top: 50, right: 120, bottom: 50, left: 60 },
+      grid: { top: 40, right: 40, bottom: 50, left: 60 },
       tooltip: {
         trigger: "item",
         formatter: (params: unknown) => {
@@ -55,16 +55,20 @@ export function LeaderboardScatterChart({ data }: { data: ScatterPoint[] }) {
             label: {
               show: true,
               formatter: d.name,
-              position: "right",
+              position: "top",
               color: "#a0a0a0",
               fontSize: 10,
-              distance: 6,
+              distance: 4,
             },
-            symbolSize: 10,
+            symbolSize: 12,
           })),
+          labelLayout: {
+            hideOverlap: true,
+            moveOverlap: "shiftY",
+          },
           markArea: {
             silent: true,
-            itemStyle: { color: "rgba(34, 197, 94, 0.05)" },
+            itemStyle: { color: "rgba(34, 197, 94, 0.04)" },
             data: [
               [
                 { xAxis: 0, yAxis: 50 },

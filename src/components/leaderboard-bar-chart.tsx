@@ -47,36 +47,33 @@ export function LeaderboardBarChart({
 
   return (
     <div className="mb-10">
-      <div className="flex items-end gap-[3px] h-80 px-2">
+      <div className="flex items-end gap-1.5 h-64 px-2">
         {items.map((item) => {
           if (!item) return null;
           const heightPct = (item.score / maxScore) * 100;
           const displayScore = Math.round(item.score * 100);
           return (
-            <div key={item.slug} className="flex flex-col items-center flex-1 min-w-0">
-              <div className="relative w-full flex items-end" style={{ height: "280px" }}>
+            <div key={item.slug} className="flex flex-col items-center flex-1 min-w-0 group relative">
+              <div className="relative w-full flex items-end" style={{ height: "200px" }}>
                 <div
-                  className="w-full rounded-t-md flex items-center justify-center text-white text-xs font-semibold transition hover:opacity-90"
+                  className="w-full rounded-t-md flex items-center justify-center text-white text-sm font-semibold transition hover:opacity-90"
                   style={{
-                    height: `${Math.max(heightPct, 5)}%`,
+                    height: `${Math.max(heightPct, 4)}%`,
                     backgroundColor: item.color,
+                    minHeight: "24px",
                   }}
+                  title={`${item.displayName}: ${displayScore}`}
                 >
                   {displayScore}
                 </div>
               </div>
-              <div className="mt-3">
+              <div className="mt-2">
                 <ModelIcon icon={item.icon} iconAlt={item.iconAlt} />
               </div>
-              <div
-                className="mt-2 text-[10px] text-kumo-subtle leading-tight"
-                style={{
-                  writingMode: "vertical-rl",
-                  textOrientation: "mixed",
-                  height: "90px",
-                }}
-              >
-                {item.displayName}
+              <div className="mt-1.5 text-center">
+                <span className="text-[11px] text-kumo-subtle leading-tight block truncate max-w-full" title={item.displayName}>
+                  {item.displayName}
+                </span>
               </div>
             </div>
           );

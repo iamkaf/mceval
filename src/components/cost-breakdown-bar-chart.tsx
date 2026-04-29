@@ -30,7 +30,7 @@ export function CostBreakdownBarChart({ data }: { data: CostBarItem[] }) {
           return `${item.name}<br/>Cost: $${Number(item.value).toFixed(6)}`;
         },
       },
-      grid: { top: 20, right: 60, bottom: 20, left: 120 },
+      grid: { top: 10, right: 80, bottom: 20, left: 120 },
       xAxis: {
         type: "value",
         splitLine: { show: true, lineStyle: { type: "dashed", color: "#2a2a2a" } },

@@ -122,7 +122,7 @@ function Hero({ run }: { run: { id: string | null; completedAt: string | null } 
             </a>
           </Text>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="shrink-0 text-right space-y-1">
           {run.completedAt ? (
             <Text variant="mono-secondary">
               Updated {new Date(run.completedAt).toISOString().slice(0, 10)}

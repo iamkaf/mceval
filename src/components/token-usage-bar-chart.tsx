@@ -10,6 +10,11 @@ export type TokenBarItem = {
   color: string;
 };
 
+function formatTokens(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return String(n);
+}
+
 export function TokenUsageBarChart({ data }: { data: TokenBarItem[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -46,12 +51,12 @@ export function TokenUsageBarChart({ data }: { data: TokenBarItem[] }) {
         textStyle: { color: "#888" },
         bottom: 0,
       },
-      grid: { top: 20, right: 40, bottom: 40, left: 120 },
+      grid: { top: 10, right: 30, bottom: 40, left: 120 },
       xAxis: {
         type: "value",
         splitLine: { show: true, lineStyle: { type: "dashed", color: "#2a2a2a" } },
         axisLine: { lineStyle: { color: "#444" } },
-        axisLabel: { color: "#888", formatter: (v: number) => `${(v / 1000).toFixed(0)}K` },
+        axisLabel: { color: "#888", formatter: (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}K` : String(v)) },
       },
       yAxis: {
         type: "category",
@@ -67,14 +72,14 @@ export function TokenUsageBarChart({ data }: { data: TokenBarItem[] }) {
           stack: "total",
           data: sorted.map((d) => ({
             value: d.promptTokens,
-            itemStyle: { color: "#3b82f6", opacity: 0.5 },
+            itemStyle: { color: "#60a5fa", opacity: 0.6 },
           })),
           barWidth: 16,
           label: {
             show: true,
             position: "inside",
             formatter: (p: { value: number }) =>
-              p.value > 0 ? `${(p.value / 1000).toFixed(0)}K` : "",
+              p.value > 500 ? formatTokens(p.value) : "",
             color: "#fff",
             fontSize: 10,
           },
@@ -92,7 +97,7 @@ export function TokenUsageBarChart({ data }: { data: TokenBarItem[] }) {
             show: true,
             position: "inside",
             formatter: (p: { value: number }) =>
-              p.value > 0 ? `${(p.value / 1000).toFixed(0)}K` : "",
+              p.value > 500 ? formatTokens(p.value) : "",
             color: "#fff",
             fontSize: 10,
           },
@@ -111,5 +116,5 @@ export function TokenUsageBarChart({ data }: { data: TokenBarItem[] }) {
     };
   }, [data]);
 
-  return <div ref={containerRef} className="h-[360px] w-full" />;
+  return <div ref={containerRef} className="h-[320px] w-full" />;
 }
