@@ -18,8 +18,8 @@ export function LeaderboardScatterChart({ data }: { data: ScatterPoint[] }) {
 
     const chart = echarts.init(containerRef.current, undefined, { renderer: "canvas" });
 
-    const costs = data.map((d) => d.cost).sort((a, b) => a - b);
-    const midCost = costs[Math.floor(costs.length / 2)] ?? costs[costs.length - 1] ?? 0;
+    const maxCost = Math.max(...data.map((d) => d.cost), 0.001);
+    const midCost = maxCost / 2;
 
     const option = {
       backgroundColor: "transparent",
@@ -37,6 +37,8 @@ export function LeaderboardScatterChart({ data }: { data: ScatterPoint[] }) {
         name: "Cost (USD)",
         nameLocation: "middle",
         nameGap: 30,
+        min: 0,
+        max: maxCost,
         splitLine: { show: true, lineStyle: { type: "dashed", color: "#2a2a2a" } },
         axisLine: { lineStyle: { color: "#444" } },
         axisLabel: { color: "#888", formatter: (v: number) => `$${v.toFixed(4)}` },
