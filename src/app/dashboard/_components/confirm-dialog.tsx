@@ -28,7 +28,7 @@ export function ConfirmDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog size="sm">
+      <Dialog size="sm" className="p-6 sm:p-8">
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Description>{description}</Dialog.Description>
         <div className="mt-6 flex justify-end gap-3">

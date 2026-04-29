@@ -286,7 +286,7 @@ function AddSampleDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog size="lg">
+      <Dialog size="lg" className="p-6 sm:p-8">
         <Dialog.Title>Add sample</Dialog.Title>
         <Dialog.Description>Add a new question to this draft.</Dialog.Description>
         <form

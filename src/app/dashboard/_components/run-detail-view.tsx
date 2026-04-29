@@ -7,6 +7,8 @@ import { Surface } from "@cloudflare/kumo/components/surface";
 import { Table } from "@cloudflare/kumo/components/table";
 import { Text } from "@cloudflare/kumo/components/text";
 
+import { findEvaluatedModel } from "@/data/models";
+import { ModelIcon } from "@/components/model-icon";
 import type { BenchmarkRunDetail } from "@/server/db/benchmarks";
 import type { EvalJobSummary, RunJobProgress } from "@/server/db/cloud-runs";
 import { cancelRun, retryFailed } from "../_actions/runs";
@@ -145,7 +147,7 @@ export function RunDetailView({ detail, progress = null, jobs = EMPTY_JOBS }: Ru
             <Table.Body>
               {results.map((result) => (
                 <Table.Row key={result.id}>
-                  <Table.Cell>{result.modelId}</Table.Cell>
+                  <Table.Cell><ModelSummary modelId={result.modelId} /></Table.Cell>
                   <Table.Cell>{result.sampleStableId ?? result.sampleId}</Table.Cell>
                   <Table.Cell className="text-kumo-subtle">
                     {result.score === null ? "—" : result.score.toFixed(2)}
@@ -195,7 +197,7 @@ export function RunDetailView({ detail, progress = null, jobs = EMPTY_JOBS }: Ru
                 {jobs.map((job) => (
                   <Table.Row key={job.id}>
                     <Table.Cell>{job.suite_human_name}</Table.Cell>
-                    <Table.Cell>{job.model_id}</Table.Cell>
+                    <Table.Cell><ModelSummary modelId={job.model_id} /></Table.Cell>
                     <Table.Cell>{job.sample_stable_id}</Table.Cell>
                     <Table.Cell className="text-kumo-subtle">{job.status}</Table.Cell>
                     <Table.Cell className="text-kumo-subtle">{job.attempts}</Table.Cell>
@@ -251,6 +253,19 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       <Text variant="secondary" size="sm">{label}</Text>
       <Text variant="heading2">{value}</Text>
     </Surface>
+  );
+}
+
+function ModelSummary({ modelId }: { modelId: string }) {
+  const model = findEvaluatedModel(modelId);
+  return (
+    <div className="flex items-center gap-3">
+      <ModelIcon icon={model?.icon} iconAlt={model?.iconAlt} initials={(model?.provider ?? modelId).slice(0, 2)} />
+      <div className="min-w-0">
+        <span>{model?.displayName ?? modelId}</span>
+        <Text variant="secondary" size="sm">{modelId}</Text>
+      </div>
+    </div>
   );
 }
 
@@ -345,7 +360,7 @@ function ProgressTable({
           <Table.Body>
             {rows.map((row) => (
               <Table.Row key={row.id}>
-                <Table.Cell>{row.label}</Table.Cell>
+                <Table.Cell>{retryField === "modelId" ? <ModelSummary modelId={row.id} /> : row.label}</Table.Cell>
                 <Table.Cell className="text-kumo-subtle">{row.queued}</Table.Cell>
                 <Table.Cell className="text-kumo-subtle">{row.running}</Table.Cell>
                 <Table.Cell className="text-kumo-subtle">{row.completed}</Table.Cell>

@@ -10,6 +10,7 @@ import { Text } from "@cloudflare/kumo/components/text";
 import { findEvaluatedModel } from "@/data/models";
 import type { LeaderboardEntry } from "@/server/db/benchmarks";
 import { LeaderboardScatterChart } from "@/components/leaderboard-scatter-chart";
+import { ModelIcon } from "@/components/model-icon";
 
 const COLORS = [
   "#f87171", "#fb923c", "#facc15", "#4ade80", "#22d3ee",
@@ -93,13 +94,18 @@ export function ModelsView({ leaderboard }: ModelsViewProps) {
                 return (
                   <Table.Row key={entry.modelId}>
                     <Table.Cell>
-                      <a
-                        className="text-kumo-brand transition hover:text-kumo-default"
-                        href={`/dashboard/models/${encodeURIComponent(entry.modelId)}`}
-                      >
-                        {model?.displayName ?? entry.modelId}
-                      </a>
-                      <Text variant="secondary" size="sm">{entry.modelId}</Text>
+                      <div className="flex items-center gap-3">
+                        <ModelIcon icon={model?.icon} iconAlt={model?.iconAlt} initials={(model?.provider ?? entry.modelId).slice(0, 2)} />
+                        <div className="min-w-0">
+                          <a
+                            className="text-kumo-brand transition hover:text-kumo-default"
+                            href={`/dashboard/models/${encodeURIComponent(entry.modelId)}`}
+                          >
+                            {model?.displayName ?? entry.modelId}
+                          </a>
+                          <Text variant="secondary" size="sm">{entry.modelId}</Text>
+                        </div>
+                      </div>
                     </Table.Cell>
                     <Table.Cell className="text-kumo-subtle">
                       {entry.accuracy === null ? "—" : `${(entry.accuracy * 100).toFixed(1)}%`}

@@ -9,6 +9,7 @@ import { Text } from "@cloudflare/kumo/components/text";
 
 import { findEvaluatedModel } from "@/data/models";
 import type { BenchmarkRunDetail, BenchmarkRunSummary } from "@/server/db/benchmarks";
+import { ModelIcon } from "@/components/model-icon";
 
 export type QualityViewProps = {
   runs: BenchmarkRunSummary[];
@@ -133,7 +134,15 @@ function RunQualityDetail({ detail }: { detail: BenchmarkRunDetail }) {
                 const model = findEvaluatedModel(modelId);
                 return (
                   <Table.Row key={modelId}>
-                    <Table.Cell>{model?.displayName ?? modelId}</Table.Cell>
+                    <Table.Cell>
+                      <div className="flex items-center gap-3">
+                        <ModelIcon icon={model?.icon} iconAlt={model?.iconAlt} initials={(model?.provider ?? modelId).slice(0, 2)} />
+                        <div className="min-w-0">
+                          <span>{model?.displayName ?? modelId}</span>
+                          <Text variant="secondary" size="sm">{modelId}</Text>
+                        </div>
+                      </div>
+                    </Table.Cell>
                     <Table.Cell className="text-kumo-subtle">{stats.correct}</Table.Cell>
                     <Table.Cell className="text-kumo-subtle">{stats.total}</Table.Cell>
                     <Table.Cell className="text-kumo-subtle">

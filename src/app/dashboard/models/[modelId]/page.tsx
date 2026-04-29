@@ -4,6 +4,7 @@ import { Surface } from "@cloudflare/kumo/components/surface";
 import { Table } from "@cloudflare/kumo/components/table";
 import { Text } from "@cloudflare/kumo/components/text";
 import { findEvaluatedModel } from "@/data/models";
+import { ModelIcon } from "@/components/model-icon";
 import { getModelBenchmarkHistory } from "@/server/db/benchmarks";
 import { getMcevalRuntimeEnv } from "@/server/runtime/cloudflare";
 
@@ -33,9 +34,12 @@ export default async function DashboardModelPage({ params }: { params: Promise<{
         <span className="text-kumo-default">{model?.displayName ?? decodedModelId}</span>
       </nav>
 
-      <header className="border-b border-kumo-hairline pb-6">
-        <Text as="h1" variant="heading1">{model?.displayName ?? decodedModelId}</Text>
-        <Text variant="secondary">{model?.provider ?? "Unknown"} · {decodedModelId}</Text>
+      <header className="flex items-start gap-4 border-b border-kumo-hairline pb-6">
+        <ModelIcon icon={model?.icon} iconAlt={model?.iconAlt} initials={(model?.provider ?? decodedModelId).slice(0, 2)} />
+        <div>
+          <Text as="h1" variant="heading1">{model?.displayName ?? decodedModelId}</Text>
+          <Text variant="secondary">{model?.provider ?? "Unknown"} · {decodedModelId}</Text>
+        </div>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">

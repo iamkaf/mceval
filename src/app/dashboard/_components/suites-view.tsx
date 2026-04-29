@@ -207,7 +207,7 @@ function NewDraftDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog size="sm">
+      <Dialog size="sm" className="p-6 sm:p-8">
         <Dialog.Title>Create draft</Dialog.Title>
         <Dialog.Description>Name your new draft.</Dialog.Description>
         <form
@@ -246,7 +246,7 @@ function FreezeDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog size="sm">
+      <Dialog size="sm" className="p-6 sm:p-8">
         <Dialog.Title>Freeze draft</Dialog.Title>
         <Dialog.Description>Choose a globally unique version name.</Dialog.Description>
         <form
@@ -318,7 +318,7 @@ function CloneDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog size="sm">
+      <Dialog size="sm" className="p-6 sm:p-8">
         <Dialog.Title>Clone version</Dialog.Title>
         <Dialog.Description>Create a new draft from this version.</Dialog.Description>
         <form
