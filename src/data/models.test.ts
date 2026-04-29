@@ -3,15 +3,15 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { flagshipModels } from "./models";
+import { evaluatedModels, getEvaluatedModelSet } from "./models";
 
-describe("flagship models", () => {
-  it("uses Alibaba Qwen instead of Meta", () => {
-    expect(flagshipModels.some((entry) => entry.provider === "Meta")).toBe(false);
-    expect(flagshipModels).toContainEqual(
+describe("evaluated model registry", () => {
+  it("uses cost-balanced evaluated models instead of flagship terminology", () => {
+    expect(evaluatedModels.some((entry) => entry.provider === "Meta")).toBe(false);
+    expect(evaluatedModels).toContainEqual(
       expect.objectContaining({
         provider: "Alibaba",
-        model: "Qwen3.6 Max Preview",
+        displayName: "Qwen3.6 Max Preview",
         modelId: "qwen/qwen3.6-max-preview",
         icon: "/icons/providers/qwen.svg",
         iconAlt: "Qwen",
@@ -19,17 +19,22 @@ describe("flagship models", () => {
     );
   });
 
-  it("uses checked-in icons for every flagship provider", () => {
-    expect(flagshipModels).toHaveLength(10);
-    for (const entry of flagshipModels) {
-      expect(entry).toHaveProperty("icon");
-      expect(entry).toHaveProperty("iconAlt");
+  it("uses checked-in icons for every evaluated model", () => {
+    expect(evaluatedModels).toHaveLength(10);
+    for (const entry of evaluatedModels) {
+      expect(entry.icon).toBeTruthy();
+      expect(entry.iconAlt).toBeTruthy();
       expect(entry).not.toHaveProperty("initials");
 
-      if ("icon" in entry) {
-        const iconPath = entry.icon.replace(/^\//, "");
-        expect(existsSync(join(process.cwd(), "public", iconPath))).toBe(true);
-      }
+      const iconPath = entry.icon.replace(/^\//, "");
+      expect(existsSync(join(process.cwd(), "public", iconPath))).toBe(true);
     }
+  });
+
+  it("exposes named model sets for benchmark operations", () => {
+    expect(getEvaluatedModelSet("default").map((model) => model.modelId)).toEqual(
+      evaluatedModels.filter((model) => model.defaultEnabled).map((model) => model.modelId),
+    );
+    expect(getEvaluatedModelSet("all")).toEqual(evaluatedModels);
   });
 });

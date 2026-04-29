@@ -92,7 +92,18 @@ export function regexScorer(pattern: RegExp): Scorer {
 export const answerPatternScorer = regexScorer(/Answer:\s*([^\n]+)/i);
 
 export function normalizeAnswer(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, " ");
+  return value
+    .trim()
+    .replace(/^```[a-z]*\s*/i, "")
+    .replace(/```$/i, "")
+    .replace(/^answer:\s*/i, "")
+    .replace(/^the\s+/i, "")
+    .replace(/["'`]/g, "")
+    .trim()
+    .replace(/[.!?]+$/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
 }
 
 function normalizeTarget(sample: EvalSample): string | null {

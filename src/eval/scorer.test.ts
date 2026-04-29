@@ -33,7 +33,17 @@ describe("scorers", () => {
     });
 
     expect(score.score).toBe(1);
-    expect(score.extracted).toBe("the nether was added in alpha 1.2.0.");
+    expect(score.extracted).toBe("nether was added in alpha 1.2.0");
+  });
+
+  it("strips common wrappers from answer text before scoring", () => {
+    const score = includesScorer.score({
+      sample: { ...sample, target: "Halloween Update" },
+      output: '```\nAnswer: The "Halloween Update."\n```',
+    });
+
+    expect(score.score).toBe(1);
+    expect(score.extracted).toBe("halloween update");
   });
 
   it("extracts regex captures before scoring", () => {

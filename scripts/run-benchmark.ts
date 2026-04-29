@@ -26,6 +26,7 @@ async function main() {
     MODEL_ID: process.env.MODEL_ID,
     MODEL_PROVIDER: process.env.MODEL_PROVIDER,
     MODEL_NAME: process.env.MODEL_NAME,
+    MODEL_SET: process.env.MODEL_SET,
     TEMPERATURE: process.env.TEMPERATURE,
     MAX_TOKENS: process.env.MAX_TOKENS,
   });

@@ -2,11 +2,18 @@ import { Surface } from "@cloudflare/kumo/components/surface";
 import { Text } from "@cloudflare/kumo/components/text";
 import { ModelIcon } from "@/components/model-icon";
 import { benchmarks } from "@/data/benchmarks";
-import { flagshipModels } from "@/data/models";
+import { evaluatedModels, findEvaluatedModel } from "@/data/models";
+import { listLatestLeaderboard, type LeaderboardEntry } from "@/server/db/benchmarks";
+import { getMcevalRuntimeEnv } from "@/server/runtime/cloudflare";
+
+export const dynamic = "force-dynamic";
 
 const columns = ["Model", ...benchmarks.map((benchmark) => benchmark.name.replace(" Bench", "")), "Overall"];
 
-export default function Home() {
+export default async function Home() {
+  const leaderboard = await getPublicLeaderboard();
+  const scoreByModel = new Map(leaderboard.entries.map((entry) => [entry.modelId, entry]));
+
   return (
     <main className="min-h-screen px-5 py-6 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -18,8 +25,8 @@ export default function Home() {
             <Text variant="secondary">Minecraft AI evaluation</Text>
           </div>
           <Text variant="mono-secondary">
-            <a className="transition hover:text-kumo-default" href="/dashboard">
-              Dashboard
+            <a className="transition hover:text-kumo-default" href="https://github.com/iamkaf/mceval">
+              GitHub
             </a>
           </Text>
         </header>
@@ -44,10 +51,17 @@ export default function Home() {
 
         <section className="grid gap-6 xl:grid-cols-[1fr_420px]">
           <Surface className="overflow-hidden rounded-xl border border-kumo-hairline bg-kumo-base">
-            <div className="border-b border-kumo-hairline px-5 py-4">
-              <Text as="h2" variant="heading3">
-                Leaderboard
-              </Text>
+            <div className="flex items-start justify-between gap-4 border-b border-kumo-hairline px-5 py-4">
+              <div className="space-y-1">
+                <Text as="h2" variant="heading3">
+                  Leaderboard
+                </Text>
+                <Text variant="secondary" size="sm">
+                  {leaderboard.runId
+                    ? `Latest run ${leaderboard.runId}`
+                    : "No published run yet. The table shows the evaluated model set."}
+                </Text>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] border-collapse text-left text-sm">
@@ -61,27 +75,30 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {flagshipModels.map((entry) => (
-                    <tr className="border-b border-kumo-hairline last:border-0" key={entry.provider}>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <ModelIcon icon={entry.icon} iconAlt={entry.iconAlt} />
-                          <div className="space-y-1">
-                            <Text>{entry.model}</Text>
-                            <Text variant="secondary" size="sm">
-                              {entry.provider}
-                            </Text>
+                  {evaluatedModels.map((entry) => {
+                    const score = scoreByModel.get(entry.modelId);
+                    return (
+                      <tr className="border-b border-kumo-hairline last:border-0" key={entry.modelId}>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <ModelIcon icon={entry.icon} iconAlt={entry.iconAlt} />
+                            <div className="space-y-1">
+                              <Text>{entry.displayName}</Text>
+                              <Text variant="secondary" size="sm">
+                                {entry.provider}
+                              </Text>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      {benchmarks.map((benchmark) => (
-                        <td className="px-5 py-4 text-kumo-subtle" key={benchmark.name}>
-                          —
                         </td>
-                      ))}
-                      <td className="px-5 py-4 text-kumo-subtle">—</td>
-                    </tr>
-                  ))}
+                        {benchmarks.map((benchmark) => (
+                          <td className="px-5 py-4 text-kumo-subtle" key={benchmark.name}>
+                            {score ? formatScore(score.accuracy) : "—"}
+                          </td>
+                        ))}
+                        <td className="px-5 py-4 text-kumo-subtle">{score ? formatScore(score.accuracy) : "—"}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -91,41 +108,35 @@ export default function Home() {
             <Surface className="rounded-xl border border-kumo-hairline bg-kumo-base p-5">
               <div className="space-y-4">
                 <Text as="h2" variant="heading3">
-                  Benchmark suites
+                  Methodology
                 </Text>
-                <div className="space-y-3">
-                  {benchmarks.map((benchmark, index) => (
-                    <div className="grid grid-cols-[2rem_1fr] gap-3" key={benchmark.name}>
-                      <Text variant="mono-secondary">
-                        {String(index + 1).padStart(2, "0")}
-                      </Text>
-                      <div className="space-y-1">
-                        <Text>{benchmark.name}</Text>
-                        <Text variant="secondary" size="sm">
-                          {benchmark.scope}
-                        </Text>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <Text variant="secondary" size="sm">
+                  Runs are artifact-first: prompts, model ids, scorer output, latency, tokens, and cost are persisted before
+                  publication. Deterministic scoring is preferred over model-graded judgment.
+                </Text>
+                {leaderboard.updatedAt ? (
+                  <Text variant="mono-secondary">
+                    Updated {new Date(leaderboard.updatedAt).toISOString().slice(0, 10)}
+                  </Text>
+                ) : null}
               </div>
             </Surface>
 
             <Surface className="rounded-xl border border-kumo-hairline bg-kumo-base p-5">
               <div className="space-y-4">
                 <Text as="h2" variant="heading3">
-                  Flagship models
+                  Evaluated models
                 </Text>
                 <div className="divide-y divide-kumo-hairline">
-                  {flagshipModels.map((entry) => (
-                    <div className="grid grid-cols-[8rem_1fr] items-center gap-4 py-3 first:pt-0 last:pb-0" key={entry.provider}>
+                  {evaluatedModels.map((entry) => (
+                    <div className="grid grid-cols-[8rem_1fr] items-center gap-4 py-3 first:pt-0 last:pb-0" key={entry.modelId}>
                       <div className="flex items-center gap-3">
                         <ModelIcon icon={entry.icon} iconAlt={entry.iconAlt} />
                         <Text variant="secondary" size="sm">
                           {entry.provider}
                         </Text>
                       </div>
-                      <Text size="sm">{entry.model}</Text>
+                      <Text size="sm">{entry.displayName}</Text>
                     </div>
                   ))}
                 </div>
@@ -136,4 +147,32 @@ export default function Home() {
       </div>
     </main>
   );
+}
+
+type PublicPageLeaderboard = {
+  runId: string | null;
+  updatedAt: string | null;
+  entries: LeaderboardEntry[];
+};
+
+async function getPublicLeaderboard(): Promise<PublicPageLeaderboard> {
+  try {
+    const env = getMcevalRuntimeEnv();
+    if (!env.DB) {
+      return { runId: null, updatedAt: null, entries: [] };
+    }
+
+    const leaderboard = await listLatestLeaderboard(env.DB);
+    return {
+      runId: leaderboard.run?.id ?? null,
+      updatedAt: leaderboard.run?.completedAt ?? null,
+      entries: leaderboard.entries.filter((entry) => findEvaluatedModel(entry.modelId)),
+    };
+  } catch {
+    return { runId: null, updatedAt: null, entries: [] };
+  }
+}
+
+function formatScore(score: number | null): string {
+  return typeof score === "number" ? `${Math.round(score * 100)}%` : "—";
 }

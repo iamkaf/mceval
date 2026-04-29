@@ -31,4 +31,17 @@ describe("model config", () => {
   it("falls back to MODEL_ID for one-model benchmark runs", () => {
     expect(parseEvalModels({ MODEL_ID: "openai/gpt-5.4-mini" })).toHaveLength(1);
   });
+
+  it("uses the evaluated default model set when requested", () => {
+    const models = parseEvalModels({ MODEL_SET: "default" });
+
+    expect(models.length).toBeGreaterThan(1);
+    expect(models).toContainEqual(
+      expect.objectContaining({
+        provider: "Alibaba",
+        modelId: "qwen/qwen3.6-max-preview",
+        displayName: "Qwen3.6 Max Preview",
+      }),
+    );
+  });
 });

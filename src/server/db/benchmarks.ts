@@ -41,6 +41,21 @@ export type BenchmarkRunDetail = {
   results: BenchmarkResultSummary[];
 };
 
+export type LeaderboardEntry = {
+  modelId: string;
+  scoredCount: number;
+  errorCount: number;
+  meanScore: number | null;
+  accuracy: number | null;
+  meanLatencyMs: number | null;
+  totalCost: number;
+};
+
+export type PublicLeaderboard = {
+  run: BenchmarkRunSummary | null;
+  entries: LeaderboardEntry[];
+};
+
 type EvalRunRow = {
   id: string;
   suite_id: string;
@@ -54,6 +69,17 @@ type EvalRunRow = {
   total_cost: number | null;
   mean_latency_ms: number | null;
   models_json: string;
+};
+
+
+type LeaderboardRow = {
+  model_id: string;
+  scored_count: number;
+  error_count: number;
+  mean_score: number | null;
+  accuracy: number | null;
+  mean_latency_ms: number | null;
+  total_cost: number | null;
 };
 
 type EvalResultRow = {
@@ -126,6 +152,37 @@ export async function getBenchmarkRunDetail(db: D1DatabaseLike, runId: string): 
   };
 }
 
+export async function listLatestLeaderboard(db: D1DatabaseLike): Promise<PublicLeaderboard> {
+  const runs = await listRecentBenchmarkRuns(db, 1);
+  const run = runs[0] ?? null;
+
+  if (!run) {
+    return { run: null, entries: [] };
+  }
+
+  const { results = [] } = await db
+    .prepare(`
+      SELECT model_id,
+             COUNT(score) AS scored_count,
+             SUM(CASE WHEN error IS NULL THEN 0 ELSE 1 END) AS error_count,
+             AVG(score) AS mean_score,
+             AVG(score) AS accuracy,
+             AVG(latency_ms) AS mean_latency_ms,
+             SUM(COALESCE(cost, 0)) AS total_cost
+      FROM eval_results
+      WHERE run_id = ?
+      GROUP BY model_id
+      ORDER BY accuracy DESC, total_cost ASC, model_id ASC
+    `)
+    .bind(run.id)
+    .all<LeaderboardRow>();
+
+  return {
+    run,
+    entries: results.map(mapLeaderboardRow),
+  };
+}
+
 export function mapEvalRunRow(row: EvalRunRow): BenchmarkRunSummary {
   return {
     id: row.id,
@@ -163,6 +220,18 @@ export function mapEvalResultRow(row: EvalResultRow): BenchmarkResultSummary {
     cost: row.cost,
     upstreamInferenceCost: row.upstream_inference_cost,
     raw: row.raw_json ? JSON.parse(row.raw_json) : null,
+  };
+}
+
+function mapLeaderboardRow(row: LeaderboardRow): LeaderboardEntry {
+  return {
+    modelId: row.model_id,
+    scoredCount: row.scored_count,
+    errorCount: row.error_count,
+    meanScore: row.mean_score,
+    accuracy: row.accuracy,
+    meanLatencyMs: row.mean_latency_ms,
+    totalCost: row.total_cost ?? 0,
   };
 }
 

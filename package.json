@@ -9,6 +9,7 @@
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src scripts next.config.ts open-next.config.ts",
     "format": "oxfmt .",
+    "check": "pnpm run test && pnpm run typecheck && pnpm run lint && pnpm run build && pnpm exec opennextjs-cloudflare build",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -16,9 +17,11 @@
     "db:migrate:local": "wrangler d1 migrations apply mceval --local",
     "db:migrate:remote": "wrangler d1 migrations apply mceval --remote",
     "test": "vitest run",
+    "mceval": "dotenv -e .env.local -- tsx scripts/mceval.ts",
     "eval:benchmark": "dotenv -e .env.local -- tsx scripts/run-benchmark.ts",
     "eval:benchmark:json": "dotenv -e .env.local -- tsx scripts/run-benchmark.ts --json",
-    "eval:import-run": "tsx scripts/import-run-log.ts"
+    "eval:import-run": "tsx scripts/import-run-log.ts",
+    "eval:import-run:remote": "tsx scripts/import-run-log.ts --remote"
   },
   "dependencies": {
     "@cloudflare/kumo": "^1.19.0",

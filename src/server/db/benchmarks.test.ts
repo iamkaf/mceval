@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getBenchmarkRunDetail,
+  listLatestLeaderboard,
   listRecentBenchmarkRuns,
   mapEvalResultRow,
   mapEvalRunRow,
@@ -19,7 +20,12 @@ function createDb(rows: Record<string, unknown[]>): D1DatabaseLike {
           return this;
         },
         async all<T>() {
-          const key = normalized.includes("FROM eval_results") ? `results:${bound[0]}` : "runs";
+          let key = "runs";
+          if (normalized.includes("FROM eval_results") && normalized.includes("GROUP BY model_id")) {
+            key = "leaderboard";
+          } else if (normalized.includes("FROM eval_results")) {
+            key = `results:${bound[0]}`;
+          }
           return { results: (rows[key] ?? []) as T[] };
         },
         async first<T>() {
@@ -113,5 +119,37 @@ describe("benchmark D1 queries", () => {
   it("returns null for missing run detail", async () => {
     const db = createDb({});
     await expect(getBenchmarkRunDetail(db, "missing")).resolves.toBeNull();
+  });
+
+  it("aggregates the latest run into public leaderboard entries", async () => {
+    const db = createDb({
+      runs: [runRow],
+      leaderboard: [
+        {
+          model_id: "qwen/qwen3.6-max-preview",
+          scored_count: 4,
+          error_count: 0,
+          mean_score: 0.75,
+          accuracy: 0.75,
+          mean_latency_ms: 900,
+          total_cost: 0.002,
+        },
+      ],
+    });
+
+    await expect(listLatestLeaderboard(db)).resolves.toEqual({
+      run: expect.objectContaining({ id: "benchmark_1" }),
+      entries: [
+        {
+          modelId: "qwen/qwen3.6-max-preview",
+          scoredCount: 4,
+          errorCount: 0,
+          meanScore: 0.75,
+          accuracy: 0.75,
+          meanLatencyMs: 900,
+          totalCost: 0.002,
+        },
+      ],
+    });
   });
 });
