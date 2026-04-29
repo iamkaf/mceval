@@ -122,16 +122,20 @@ function Hero({ run }: { run: { id: string | null; completedAt: string | null } 
             </a>
           </Text>
         </div>
-        <div className="shrink-0 text-right space-y-1">
+        <div className="shrink-0 text-right">
           {run.completedAt ? (
-            <Text variant="mono-secondary">
-              Updated {new Date(run.completedAt).toISOString().slice(0, 10)}
-            </Text>
+            <div>
+              <Text variant="mono-secondary">
+                Updated {new Date(run.completedAt).toISOString().slice(0, 10)}
+              </Text>
+            </div>
           ) : null}
           {run.id ? (
-            <Text variant="mono-secondary">
-              Run {run.id}
-            </Text>
+            <div>
+              <Text variant="mono-secondary">
+                Run {run.id}
+              </Text>
+            </div>
           ) : null}
         </div>
       </div>
