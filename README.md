@@ -20,7 +20,7 @@ Early, but live: the harness, evaluated model registry, run artifacts, D1 import
 
 The current public leaderboard is seeded by `benchmark_1777426615091`, a default model-set run with 6 models, 24 attempted results, 22 scored results, 2 provider empty-response errors, and `$0.03014268` total OpenRouter-reported cost.
 
-See [ROADMAP.md](./ROADMAP.md) for the path to a useful public release.
+See [TODO.md](./TODO.md) for the cloud execution and dashboard management plan.
 
 ## Quick start
 
