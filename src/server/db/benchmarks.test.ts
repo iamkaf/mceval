@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getBenchmarkRunDetail,
+  getModelBenchmarkHistory,
   listLatestLeaderboard,
   listRecentBenchmarkRuns,
   mapEvalResultRow,
@@ -21,7 +22,9 @@ function createDb(rows: Record<string, unknown[]>): D1DatabaseLike {
         },
         async all<T>() {
           let key = "runs";
-          if (normalized.includes("FROM eval_results") && normalized.includes("GROUP BY model_id")) {
+          if (normalized.includes("INNER JOIN eval_results")) {
+            key = "modelRuns";
+          } else if (normalized.includes("FROM eval_results") && normalized.includes("GROUP BY model_id")) {
             key = "leaderboard";
           } else if (normalized.includes("FROM eval_results")) {
             key = `results:${bound[0]}`;
@@ -45,10 +48,18 @@ const runRow = {
   completed_at: "2026-04-28T00:01:00.000Z",
   model_count: 2,
   result_count: 8,
+  scored_count: 8,
   error_count: 0,
   accuracy: 0.875,
+  mean_score: 0.875,
+  total_tokens: 1200,
   total_cost: 0.0063,
   mean_latency_ms: 1200,
+  suite_version: "0.1.0",
+  suite_sample_count: 4,
+  suite_sample_hash: "hash123",
+  suite_source_path: "src/eval/fixtures/minecraft-core.ts",
+  harness_version: "0.1.0",
   models_json: '[{"modelId":"openai/gpt-5.4-mini"}]',
 };
 
@@ -83,10 +94,18 @@ describe("benchmark D1 queries", () => {
       completedAt: "2026-04-28T00:01:00.000Z",
       modelCount: 2,
       resultCount: 8,
+      scoredCount: 8,
       errorCount: 0,
       accuracy: 0.875,
+      meanScore: 0.875,
       totalCost: 0.0063,
+      totalTokens: 1200,
       meanLatencyMs: 1200,
+      suiteVersion: "0.1.0",
+      suiteSampleCount: 4,
+      suiteSampleHash: "hash123",
+      suiteSourcePath: "src/eval/fixtures/minecraft-core.ts",
+      harnessVersion: "0.1.0",
       models: [{ modelId: "openai/gpt-5.4-mini" }],
     });
   });
@@ -150,6 +169,16 @@ describe("benchmark D1 queries", () => {
           totalCost: 0.002,
         },
       ],
+    });
+  });
+
+  it("loads model run history and bad outputs for public model pages", async () => {
+    const db = createDb({ modelRuns: [runRow], "results:openai/gpt-5.4-mini": [resultRow] });
+
+    await expect(getModelBenchmarkHistory(db, "openai/gpt-5.4-mini")).resolves.toMatchObject({
+      modelId: "openai/gpt-5.4-mini",
+      runs: [{ suiteSampleHash: "hash123" }],
+      results: [{ sampleId: "knowledge-001" }],
     });
   });
 });

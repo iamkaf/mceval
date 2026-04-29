@@ -25,15 +25,15 @@ MCEval is an open-source Minecraft AI evaluation project: a small, inspectable h
 - [x] Harden deterministic scoring with answer extraction, aliases, normalization, and unscorable handling.
 - [x] Add sample validation tooling for ids, categories, accepted targets, and scoring metadata.
 - [x] Add a sample template and authoring docs so new hand-written samples are easy to add correctly.
-- [ ] Track cost, latency, errors, and scored-count quality signals in all public views.
-- [ ] Keep benchmark suite provenance attached to every imported run.
+- [x] Track cost, latency, errors, and scored-count quality signals in all public views.
+- [x] Keep benchmark suite provenance attached to every imported run.
 
 ## Phase 2 — operating quality
 
-- [ ] Add CI for tests, typecheck, lint, Next build, OpenNext build, icon checks, and secret-pattern checks.
-- [ ] Add run comparison and model-detail pages.
-- [ ] Add CSV/JSON export for public results.
-- [ ] Add clearer failure inspection for bad samples and bad model outputs.
+- [x] Add CI for tests, typecheck, lint, Next build, OpenNext build, icon checks, and secret-pattern checks.
+- [x] Add run comparison and model-detail pages.
+- [x] Add CSV/JSON export for public results.
+- [x] Add clearer failure inspection for bad samples and bad model outputs.
 
 ## Phase 3 — public release
 

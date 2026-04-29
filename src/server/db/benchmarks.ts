@@ -8,10 +8,18 @@ export type BenchmarkRunSummary = {
   completedAt: string;
   modelCount: number;
   resultCount: number;
+  scoredCount: number;
   errorCount: number;
   accuracy: number | null;
+  meanScore: number | null;
   totalCost: number;
+  totalTokens: number;
   meanLatencyMs: number | null;
+  suiteVersion: string;
+  suiteSampleCount: number;
+  suiteSampleHash: string;
+  suiteSourcePath: string;
+  harnessVersion: string;
   models: unknown[];
 };
 
@@ -56,16 +64,30 @@ export type PublicLeaderboard = {
   entries: LeaderboardEntry[];
 };
 
+export type ModelBenchmarkHistory = {
+  modelId: string;
+  runs: BenchmarkRunSummary[];
+  results: BenchmarkResultSummary[];
+};
+
 type EvalRunRow = {
   id: string;
   suite_id: string;
   suite_name: string;
+  suite_version: string;
+  suite_source_path: string;
+  suite_sample_count: number;
+  suite_sample_hash: string;
+  harness_version: string;
   started_at: string;
   completed_at: string;
   model_count: number;
   result_count: number;
+  scored_count: number;
   error_count: number;
   accuracy: number | null;
+  mean_score: number | null;
+  total_tokens: number | null;
   total_cost: number | null;
   mean_latency_ms: number | null;
   models_json: string;
@@ -106,8 +128,10 @@ type EvalResultRow = {
 export async function listRecentBenchmarkRuns(db: D1DatabaseLike, limit = 20): Promise<BenchmarkRunSummary[]> {
   const { results = [] } = await db
     .prepare(`
-      SELECT id, suite_id, suite_name, started_at, completed_at, model_count,
-             result_count, error_count, accuracy, total_cost, mean_latency_ms, models_json
+      SELECT id, suite_id, suite_name, suite_version, suite_source_path, suite_sample_count,
+             suite_sample_hash, harness_version, started_at, completed_at, model_count,
+             result_count, scored_count, error_count, accuracy, mean_score, total_tokens,
+             total_cost, mean_latency_ms, models_json
       FROM eval_runs
       ORDER BY started_at DESC
       LIMIT ?
@@ -121,8 +145,10 @@ export async function listRecentBenchmarkRuns(db: D1DatabaseLike, limit = 20): P
 export async function getBenchmarkRunDetail(db: D1DatabaseLike, runId: string): Promise<BenchmarkRunDetail | null> {
   const runRow = await db
     .prepare(`
-      SELECT id, suite_id, suite_name, started_at, completed_at, model_count,
-             result_count, error_count, accuracy, total_cost, mean_latency_ms, models_json
+      SELECT id, suite_id, suite_name, suite_version, suite_source_path, suite_sample_count,
+             suite_sample_hash, harness_version, started_at, completed_at, model_count,
+             result_count, scored_count, error_count, accuracy, mean_score, total_tokens,
+             total_cost, mean_latency_ms, models_json
       FROM eval_runs
       WHERE id = ?
     `)
@@ -183,6 +209,48 @@ export async function listLatestLeaderboard(db: D1DatabaseLike): Promise<PublicL
   };
 }
 
+export async function getModelBenchmarkHistory(
+  db: D1DatabaseLike,
+  modelId: string,
+  limit = 20,
+): Promise<ModelBenchmarkHistory> {
+  const { results: runRows = [] } = await db
+    .prepare(`
+      SELECT DISTINCT r.id, r.suite_id, r.suite_name, r.suite_version, r.suite_source_path,
+             r.suite_sample_count, r.suite_sample_hash, r.harness_version, r.started_at,
+             r.completed_at, r.model_count, r.result_count, r.scored_count, r.error_count,
+             r.accuracy, r.mean_score, r.total_tokens, r.total_cost, r.mean_latency_ms,
+             r.models_json
+      FROM eval_runs r
+      INNER JOIN eval_results er ON er.run_id = r.id
+      WHERE er.model_id = ?
+      ORDER BY r.started_at DESC
+      LIMIT ?
+    `)
+    .bind(modelId, limit)
+    .all<EvalRunRow>();
+
+  const { results: resultRows = [] } = await db
+    .prepare(`
+      SELECT id, run_id, suite_id, sample_id, model_id, output, extracted,
+             score_name, score, score_explanation, error, latency_ms,
+             prompt_tokens, completion_tokens, total_tokens, cost,
+             upstream_inference_cost, raw_json
+      FROM eval_results
+      WHERE model_id = ?
+      ORDER BY run_id DESC, score ASC, sample_id ASC
+      LIMIT ?
+    `)
+    .bind(modelId, limit * 25)
+    .all<EvalResultRow>();
+
+  return {
+    modelId,
+    runs: runRows.map(mapEvalRunRow),
+    results: resultRows.map(mapEvalResultRow),
+  };
+}
+
 export function mapEvalRunRow(row: EvalRunRow): BenchmarkRunSummary {
   return {
     id: row.id,
@@ -192,10 +260,18 @@ export function mapEvalRunRow(row: EvalRunRow): BenchmarkRunSummary {
     completedAt: row.completed_at,
     modelCount: row.model_count,
     resultCount: row.result_count,
+    scoredCount: row.scored_count,
     errorCount: row.error_count,
     accuracy: row.accuracy,
+    meanScore: row.mean_score,
     totalCost: row.total_cost ?? 0,
+    totalTokens: row.total_tokens ?? 0,
     meanLatencyMs: row.mean_latency_ms,
+    suiteVersion: row.suite_version,
+    suiteSampleCount: row.suite_sample_count,
+    suiteSampleHash: row.suite_sample_hash,
+    suiteSourcePath: row.suite_source_path,
+    harnessVersion: row.harness_version,
     models: parseJsonArray(row.models_json),
   };
 }

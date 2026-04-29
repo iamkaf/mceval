@@ -9,7 +9,7 @@
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint src scripts next.config.ts open-next.config.ts",
     "format": "oxfmt .",
-    "check": "pnpm run test && pnpm run typecheck && pnpm run lint && pnpm run build && pnpm exec opennextjs-cloudflare build",
+    "check": "pnpm run test && pnpm run typecheck && pnpm run lint && pnpm run quality && pnpm run build && pnpm exec opennextjs-cloudflare build",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -21,7 +21,8 @@
     "eval:benchmark": "dotenv -e .env.local -- tsx scripts/run-benchmark.ts",
     "eval:benchmark:json": "dotenv -e .env.local -- tsx scripts/run-benchmark.ts --json",
     "eval:import-run": "tsx scripts/import-run-log.ts",
-    "eval:import-run:remote": "tsx scripts/import-run-log.ts --remote"
+    "eval:import-run:remote": "tsx scripts/import-run-log.ts --remote",
+    "quality": "tsx scripts/check-quality.ts"
   },
   "dependencies": {
     "@cloudflare/kumo": "^1.19.0",

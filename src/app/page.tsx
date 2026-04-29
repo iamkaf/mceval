@@ -8,7 +8,7 @@ import { getMcevalRuntimeEnv } from "@/server/runtime/cloudflare";
 
 export const dynamic = "force-dynamic";
 
-const columns = ["Model", ...benchmarks.map((benchmark) => benchmark.name.replace(" Bench", "")), "Overall"];
+const columns = ["Model", ...benchmarks.map((benchmark) => benchmark.name.replace(" Bench", "")), "Overall", "Cost", "Latency"];
 
 export default async function Home() {
   const leaderboard = await getPublicLeaderboard();
@@ -61,6 +61,11 @@ export default async function Home() {
                     ? `Latest run ${leaderboard.runId}`
                     : "No published run yet. The table shows the evaluated model set."}
                 </Text>
+                <Text variant="mono-secondary">
+                  <a className="transition hover:text-kumo-default" href="/runs/compare">
+                    Compare runs
+                  </a>
+                </Text>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -85,7 +90,9 @@ export default async function Home() {
                             <div className="space-y-1">
                               <Text>{entry.displayName}</Text>
                               <Text variant="secondary" size="sm">
-                                {entry.provider}
+                                <a className="transition hover:text-kumo-default" href={`/models/${encodeURIComponent(entry.modelId)}`}>
+                                  {entry.provider}
+                                </a>
                               </Text>
                             </div>
                           </div>
@@ -96,6 +103,8 @@ export default async function Home() {
                           </td>
                         ))}
                         <td className="px-5 py-4 text-kumo-subtle">{score ? formatScore(score.accuracy) : "—"}</td>
+                        <td className="px-5 py-4 text-kumo-subtle">{score ? formatCost(score.totalCost) : "—"}</td>
+                        <td className="px-5 py-4 text-kumo-subtle">{score ? formatLatency(score.meanLatencyMs) : "—"}</td>
                       </tr>
                     );
                   })}
@@ -178,4 +187,12 @@ async function getPublicLeaderboard(): Promise<PublicPageLeaderboard> {
 
 function formatScore(score: number | null): string {
   return typeof score === "number" ? `${Math.round(score * 100)}%` : "—";
+}
+
+function formatCost(cost: number): string {
+  return `$${cost.toFixed(6)}`;
+}
+
+function formatLatency(latency: number | null): string {
+  return latency === null ? "—" : `${Math.round(latency).toLocaleString()}ms`;
 }

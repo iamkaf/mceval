@@ -27,6 +27,21 @@ corepack pnpm install
 cp .env.example .env.local # or create .env.local manually
 ```
 
+Import or publish a run:
+
+```bash
+corepack pnpm run mceval -- import .mceval/runs/<runId>.json
+corepack pnpm run mceval -- publish .mceval/runs/<runId>.json --remote
+```
+
+Public result views:
+
+- `/runs/compare` compares imported runs with cost, latency, scored-count, errors, and suite provenance.
+- `/runs/<runId>` shows a public run detail page.
+- `/api/runs/<runId>.json` exports the full run detail as JSON.
+- `/api/runs/<runId>.csv` exports result rows as CSV.
+- `/models/<encoded model id>` shows model history and failure inspection.
+
 `.env.local` only needs an OpenRouter key for benchmark execution:
 
 ```bash
