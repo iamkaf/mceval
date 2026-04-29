@@ -6,7 +6,7 @@ import { LeaderboardScatterChart } from "@/components/leaderboard-scatter-chart"
 import { TokenUsageBarChart } from "@/components/token-usage-bar-chart";
 import { ModelIcon } from "@/components/model-icon";
 import { evaluatedModels, findEvaluatedModel } from "@/data/models";
-import { minecraftCoreSuite } from "@/eval/fixtures/minecraft-core";
+import { listPublishedSuiteSamples, listSuiteVersions, type PublishedSuiteSample, type SuiteVersionSummary } from "@/server/db/cloud-suites";
 import {
   getModelTokenUsage,
   listLatestLeaderboard,
@@ -44,7 +44,7 @@ function getModelColor(modelId: string): string {
 }
 
 export default async function Home() {
-  const { run, entries, categoryMap, tokenUsage } = await getPublicLeaderboard();
+  const { run, entries, categoryMap, tokenUsage, publishedVersions, publishedSamples } = await getPublicLeaderboard();
 
   const scatterData = entries
     .map((entry) => {
@@ -88,6 +88,7 @@ export default async function Home() {
     <main className="min-h-screen">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
         <Hero run={run} />
+        <PublishedSuiteLabels versions={publishedVersions} />
         <LeaderboardBarChart entries={entries} models={evaluatedModels} />
         <LeaderboardTable run={run} entries={entries} categoryMap={categoryMap} />
         <div className="mb-16 grid gap-6 md:grid-cols-2">
@@ -96,7 +97,7 @@ export default async function Home() {
         </div>
         <IntelligenceVsCostChart data={scatterData} />
         <Methodology />
-        <SampleManifest />
+        <SampleManifest samples={publishedSamples} />
         <Footer />
       </div>
     </main>
@@ -328,6 +329,20 @@ function LeaderboardTable({
   );
 }
 
+function PublishedSuiteLabels({ versions }: { versions: SuiteVersionSummary[] }) {
+  if (versions.length === 0) return null;
+  return (
+    <section className="mb-10 grid gap-3 md:grid-cols-4">
+      {versions.map((version) => (
+        <Surface key={version.id} className="rounded-xl border border-kumo-hairline bg-kumo-base p-4">
+          <Text variant="secondary" size="sm">{version.suiteName}</Text>
+          <Text variant="mono-secondary">{version.humanName}</Text>
+        </Surface>
+      ))}
+    </section>
+  );
+}
+
 function Methodology() {
   return (
     <section className="mb-16 grid gap-6 md:grid-cols-2">
@@ -337,8 +352,8 @@ function Methodology() {
             Methodology
           </Text>
           <Text variant="secondary" size="sm">
-            Runs are artifact-first: prompts, model ids, scorer output, latency, tokens, and cost are
-            persisted as JSON before publication. Every run is reproducible from its artifact.
+            Runs are cloud-executed through Cloudflare Queues: prompts, model ids, scorer output,
+            latency, tokens, and cost are persisted in D1 for publication and export.
           </Text>
           <Text variant="secondary" size="sm">
             Scoring is deterministic: normalized exact match, alias matching, and regex extraction
@@ -372,8 +387,8 @@ function Methodology() {
   );
 }
 
-function SampleManifest() {
-  const samples = minecraftCoreSuite.samples;
+function SampleManifest({ samples }: { samples: PublishedSuiteSample[] }) {
+  if (samples.length === 0) return null;
 
   return (
     <section>
@@ -382,7 +397,7 @@ function SampleManifest() {
           Sample manifest
         </Text>
         <Text variant="secondary" size="sm">
-          {samples.length} hand-authored samples in the current suite.
+          {samples.length} hand-authored samples across published suite versions.
         </Text>
       </div>
 
@@ -390,18 +405,18 @@ function SampleManifest() {
         {samples.map((sample) => (
           <Surface
             className="rounded-xl border border-kumo-hairline bg-kumo-base p-5"
-            key={sample.id}
+              key={`${sample.versionName}:${sample.stableId}`}
           >
             <div className="mb-3 flex items-center justify-between gap-3">
               <Text variant="mono-secondary">
-                {sample.id}
+                  {sample.stableId}
               </Text>
               <div className="flex items-center gap-2">
                 <span className="rounded-full bg-kumo-canvas px-2 py-0.5 text-xs text-kumo-subtle">
-                  {(sample.metadata?.category as string) ?? "unknown"}
+                  {sample.category}
                 </span>
                 <span className="rounded-full bg-kumo-canvas px-2 py-0.5 text-xs text-kumo-subtle">
-                  {(sample.metadata?.difficulty as string) ?? "unknown"}
+                  {sample.difficulty}
                 </span>
               </div>
             </div>
@@ -409,7 +424,7 @@ function SampleManifest() {
               <Text size="sm">{sample.input}</Text>
             </span>
             <Text variant="secondary" size="sm">
-              Target: {sample.target ?? "—"}
+              {sample.suiteName} · {sample.versionName} · Target: {sample.target}
             </Text>
           </Surface>
         ))}
@@ -444,14 +459,19 @@ async function getPublicLeaderboard() {
         entries: [] as LeaderboardEntry[],
         categoryMap: new Map(),
         tokenUsage: [],
+        publishedVersions: [] as SuiteVersionSummary[],
+        publishedSamples: [] as PublishedSuiteSample[],
       };
     }
 
-    const [{ run, entries }, categoryRows, tokenUsage] = await Promise.all([
+    const [{ run, entries }, categoryRows, tokenUsage, allVersions, publishedSamples] = await Promise.all([
       listLatestLeaderboard(env.DB),
       listLatestLeaderboardByCategory(env.DB),
       getModelTokenUsage(env.DB),
+      listSuiteVersions(env.DB),
+      listPublishedSuiteSamples(env.DB),
     ]);
+    const publishedVersions = allVersions.filter((version) => version.status === "published");
 
     const categoryMap = new Map<string, Map<string, number | null>>();
     for (const row of categoryRows) {
@@ -466,6 +486,8 @@ async function getPublicLeaderboard() {
       entries: entries.filter((entry) => findEvaluatedModel(entry.modelId)) as LeaderboardEntry[],
       categoryMap,
       tokenUsage,
+      publishedVersions,
+      publishedSamples,
     };
   } catch {
     return {
@@ -473,6 +495,8 @@ async function getPublicLeaderboard() {
       entries: [] as LeaderboardEntry[],
       categoryMap: new Map(),
       tokenUsage: [],
+      publishedVersions: [] as SuiteVersionSummary[],
+      publishedSamples: [] as PublishedSuiteSample[],
     };
   }
 }

@@ -23,6 +23,7 @@
 
 # cloudflare local state
 /.wrangler/
+.dev.vars
 
 # production
 /build
@@ -50,3 +51,4 @@ next-env.d.ts
 
 # local agent state
 /.hermes/
+/.fallow/

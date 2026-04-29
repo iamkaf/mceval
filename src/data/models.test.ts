@@ -17,9 +17,7 @@ describe("evaluated model registry", () => {
   });
 
   it("exposes named model sets for benchmark operations", () => {
-    expect(getEvaluatedModelSet("default").map((model) => model.modelId)).toEqual(
-      evaluatedModels.filter((model) => model.defaultEnabled).map((model) => model.modelId),
-    );
+    expect(getEvaluatedModelSet("default")).toEqual(evaluatedModels);
     expect(getEvaluatedModelSet("all")).toEqual(evaluatedModels);
   });
 

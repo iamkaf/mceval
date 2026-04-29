@@ -32,7 +32,7 @@ describe("model config", () => {
     expect(parseEvalModels({ MODEL_ID: "openai/gpt-5.4-mini" })).toHaveLength(1);
   });
 
-  it("uses the evaluated default model set when requested", () => {
+  it("uses the registered model set when requested", () => {
     const models = parseEvalModels({ MODEL_SET: "default" });
 
     expect(models.length).toBeGreaterThan(1);

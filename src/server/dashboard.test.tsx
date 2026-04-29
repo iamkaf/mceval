@@ -44,17 +44,18 @@ describe("dashboard view", () => {
     expect(html).toContain('value="https://mceval.kaf.sh/"');
   });
 
-  it("renders an empty benchmark state with the import command", () => {
+  it("renders an empty benchmark state with cloud queue guidance", () => {
     const html = renderDashboard([]);
 
-    expect(html).toContain("No benchmark runs imported yet");
-    expect(html).toContain("corepack pnpm run eval:import-run .mceval/runs/&lt;runId&gt;.json");
+    expect(html).toContain("No benchmark runs yet");
+    expect(html).toContain("Jobs are processed asynchronously through Queues.");
   });
 
   it("renders imported benchmark runs", () => {
     const html = renderDashboard([
       {
         id: "benchmark_<1>",
+        status: "completed",
         suiteId: "minecraft-core",
         suiteName: "Minecraft Core Bench",
         startedAt: "2026-04-28T00:00:00.000Z",

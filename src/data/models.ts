@@ -7,7 +7,6 @@ export type EvaluatedModel = {
   iconAlt: string;
   temperature: number;
   maxTokens: number;
-  defaultEnabled: boolean;
 };
 
 export const evaluatedModels = [
@@ -20,7 +19,6 @@ export const evaluatedModels = [
     iconAlt: "OpenAI",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: false,
   },
   {
     provider: "Anthropic",
@@ -31,7 +29,6 @@ export const evaluatedModels = [
     iconAlt: "Anthropic",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: false,
   },
   {
     provider: "Google",
@@ -42,7 +39,6 @@ export const evaluatedModels = [
     iconAlt: "Gemini",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: false,
   },
   {
     provider: "Moonshot",
@@ -53,7 +49,6 @@ export const evaluatedModels = [
     iconAlt: "Kimi",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: true,
   },
   {
     provider: "Z.Ai",
@@ -64,7 +59,6 @@ export const evaluatedModels = [
     iconAlt: "Z.Ai",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: true,
   },
   {
     provider: "MiniMax",
@@ -75,7 +69,6 @@ export const evaluatedModels = [
     iconAlt: "MiniMax",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: true,
   },
   {
     provider: "DeepSeek",
@@ -86,7 +79,6 @@ export const evaluatedModels = [
     iconAlt: "DeepSeek",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: true,
   },
   {
     provider: "xAI",
@@ -97,7 +89,6 @@ export const evaluatedModels = [
     iconAlt: "xAI",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: false,
   },
   {
     provider: "Alibaba",
@@ -108,7 +99,6 @@ export const evaluatedModels = [
     iconAlt: "Qwen",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: true,
   },
   {
     provider: "Xiaomi",
@@ -119,18 +109,13 @@ export const evaluatedModels = [
     iconAlt: "Xiaomi",
     temperature: 0,
     maxTokens: 512,
-    defaultEnabled: true,
   },
 ] satisfies EvaluatedModel[];
 
 export type EvaluatedModelSetName = "default" | "all";
 
-export function getEvaluatedModelSet(name: EvaluatedModelSetName): EvaluatedModel[] {
-  if (name === "all") {
-    return evaluatedModels;
-  }
-
-  return evaluatedModels.filter((model) => model.defaultEnabled);
+export function getEvaluatedModelSet(_name: EvaluatedModelSetName): EvaluatedModel[] {
+  return evaluatedModels;
 }
 
 export function findEvaluatedModel(modelId: string): EvaluatedModel | undefined {

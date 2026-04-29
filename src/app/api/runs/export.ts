@@ -8,7 +8,11 @@ export function runDetailToCsv(detail: BenchmarkRunDetail): string {
   const header = [
     "run_id",
     "suite_id",
+    "suite_version",
     "sample_id",
+    "sample_stable_id",
+    "prompt",
+    "target",
     "model_id",
     "score",
     "error",
@@ -23,7 +27,11 @@ export function runDetailToCsv(detail: BenchmarkRunDetail): string {
   const rows = detail.results.map((result) => [
     result.runId,
     result.suiteId,
+    result.suiteVersionName ?? detail.run.suiteVersion,
     result.sampleId,
+    result.sampleStableId ?? result.sampleId,
+    result.input ?? "",
+    result.target ?? "",
     result.modelId,
     result.score ?? "",
     result.error ?? "",

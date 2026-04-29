@@ -17,11 +17,6 @@
     "db:migrate:local": "wrangler d1 migrations apply mceval --local",
     "db:migrate:remote": "wrangler d1 migrations apply mceval --remote",
     "test": "vitest run",
-    "mceval": "dotenv -e .env.local -- tsx scripts/mceval.ts",
-    "eval:benchmark": "dotenv -e .env.local -- tsx scripts/run-benchmark.ts",
-    "eval:benchmark:json": "dotenv -e .env.local -- tsx scripts/run-benchmark.ts --json",
-    "eval:import-run": "tsx scripts/import-run-log.ts",
-    "eval:import-run:remote": "tsx scripts/import-run-log.ts --remote",
     "quality": "tsx scripts/check-quality.ts"
   },
   "dependencies": {

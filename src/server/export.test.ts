@@ -6,6 +6,7 @@ import type { BenchmarkRunDetail } from "./db/benchmarks";
 const detail: BenchmarkRunDetail = {
   run: {
     id: "benchmark_1",
+    status: "completed",
     suiteId: "minecraft-core",
     suiteName: "Minecraft Core Bench",
     startedAt: "2026-04-28T00:00:00.000Z",
@@ -57,7 +58,7 @@ describe("public run exports", () => {
 
   it("exports run detail as escaped CSV", () => {
     const csv = runDetailToCsv(detail);
-    expect(csv).toContain("run_id,suite_id,sample_id");
+    expect(csv).toContain("run_id,suite_id,suite_version,sample_id,sample_stable_id,prompt,target");
     expect(csv).toContain('"sample,1"');
     expect(csv).toContain('"line one\nline two"');
   });

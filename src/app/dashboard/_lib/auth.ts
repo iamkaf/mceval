@@ -8,11 +8,44 @@ import { getMcevalRuntimeEnv } from "@/server/runtime/cloudflare";
 
 export async function requireDashboardAccess(pathname: string) {
   const runtimeEnv = getMcevalRuntimeEnv();
-  const client = createMcevalUrielClient(runtimeEnv);
   const requestHeaders = await headers();
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "mceval.kaf.sh";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? "https";
   const currentUrl = `${protocol}://${host}${pathname}`;
+
+  if (runtimeEnv.MCEVAL_DISABLE_AUTH === "true") {
+    const localResult: AuthenticatedSessionResult = {
+      authenticated: true,
+      user: {
+        userId: "local-admin",
+        displayName: "Local Admin",
+        username: "local-admin",
+        avatarUrl: null,
+      },
+      session: {
+        sessionId: "local-session",
+        tokenFamilyId: "local-token-family",
+        issuedAt: Date.now(),
+        idleExpiresAt: Date.now() + 60 * 60 * 1000,
+        absoluteExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
+      },
+    };
+
+    return {
+      auth: {
+        ok: true as const,
+        result: localResult,
+        setCookieHeader: null,
+      },
+      logout: {
+        action: "/",
+        body: `returnTo=${encodeURIComponent(`${protocol}://${host}/`)}`,
+      },
+      runtimeEnv,
+    };
+  }
+
+  const client = createMcevalUrielClient(runtimeEnv);
 
   const auth = await client.requireSession({
     cookieHeader: requestHeaders.get("cookie"),

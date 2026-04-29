@@ -6,6 +6,7 @@ import { MissingRunView, RunDetailView } from "../app/dashboard/_components/run-
 const detail = {
   run: {
     id: "benchmark_<1>",
+    status: "completed",
     suiteId: "minecraft-core",
     suiteName: "Minecraft Core Bench",
     startedAt: "2026-04-28T00:00:00.000Z",

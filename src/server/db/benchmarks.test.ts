@@ -30,15 +30,19 @@ function createDb(rows: Record<string, unknown[]>): D1DatabaseLike {
             key = "leaderboard";
           } else if (normalized.includes("json_extract") && normalized.includes("GROUP BY er.model_id")) {
             key = "categories";
-          } else if (normalized.includes("FROM eval_results") && normalized.includes("es.input")) {
+          } else if (normalized.includes("FROM eval_results") && normalized.includes("er.model_id = ?")) {
             key = `modelResults:${bound[3]}`;
           } else if (normalized.includes("FROM eval_results")) {
-            key = `results:${bound[0]}`;
+            key = `results:${bound[2] ?? bound[0]}`;
           }
           return { results: (rows[key] ?? []) as T[] };
         },
         async first<T>() {
-          const key = normalized.includes("FROM eval_runs WHERE id") ? `run:${bound[0]}` : "unknown";
+          const key = normalized.includes("FROM eval_runs WHERE status")
+            ? "runs"
+            : normalized.includes("FROM eval_runs WHERE id")
+              ? `run:${bound[0]}`
+              : "unknown";
           return ((rows[key] ?? [null])[0] ?? null) as T | null;
         },
       };
@@ -94,6 +98,7 @@ describe("benchmark D1 queries", () => {
   it("maps eval run rows into dashboard summaries", () => {
     expect(mapEvalRunRow(runRow)).toEqual({
       id: "benchmark_1",
+      status: "completed",
       suiteId: "minecraft-core",
       suiteName: "Minecraft Core Bench",
       startedAt: "2026-04-28T00:00:00.000Z",

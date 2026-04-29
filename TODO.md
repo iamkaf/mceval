@@ -11,7 +11,7 @@ MCEval is moving from a CLI-driven artifact importer to a cloud-native, dashboar
 - Cloudflare Queues run benchmark jobs asynchronously.
 - The dashboard is the control plane.
 - Only registered models can be benchmarked.
-- Remove `defaultEnabled`; model selection belongs in the UI.
+- Model selection belongs in the UI; the registry has no `defaultEnabled` flag.
 - Suite version names are globally unique human names, such as `MCHistory1` or `MCCode2`.
 - Drafts are mutable WIP.
 - Ready versions are immutable and benchmarkable but not public.
@@ -36,99 +36,99 @@ Current details in `src/data/benchmarks.ts` are placeholders pending authoring w
 
 ## Phase 1: Cloud Execution Core
 
-- [ ] Add Cloudflare Queue producer and consumer bindings to `wrangler.jsonc`.
-- [ ] Add a custom OpenNext worker entrypoint that reuses the generated `fetch` handler and adds a `queue` handler.
-- [ ] Add required cloud bindings and secrets to runtime types: `DB`, `EVAL_QUEUE`, and `OPENROUTER_API_KEY`.
-- [ ] Fail hard when required cloud bindings or secrets are missing in dashboard run creation or queue consumers.
-- [ ] Define a small queue message shape: `{ runId, jobId }`.
-- [ ] Process queue batches with explicit per-message `ack()` and `retry()`.
-- [ ] Add retry delays for transient provider failures.
-- [ ] Add a dead-letter queue for exhausted jobs.
+- [x] Add Cloudflare Queue producer and consumer bindings to `wrangler.jsonc`.
+- [x] Add a custom OpenNext worker entrypoint that reuses the generated `fetch` handler and adds a `queue` handler.
+- [x] Add required cloud bindings and secrets to runtime types: `DB`, `EVAL_QUEUE`, and `OPENROUTER_API_KEY`.
+- [x] Fail hard when required cloud bindings or secrets are missing in dashboard run creation or queue consumers.
+- [x] Define a small queue message shape: `{ runId, jobId }`.
+- [x] Process queue batches with explicit per-message `ack()` and `retry()`.
+- [x] Add retry delays for transient provider failures.
+- [x] Add a dead-letter queue for exhausted jobs.
 
 ## Phase 2: D1 Schema
 
-- [ ] Replace artifact-import assumptions in `eval_runs` with operational run state.
-- [ ] Add `status` to runs: `queued`, `running`, `completed`, `failed`, `cancelled`.
-- [ ] Add run timestamps for queued, started, completed, and cancelled states.
-- [ ] Add run creator fields from dashboard auth.
-- [ ] Add `eval_run_suites` for runs that include one or more suite versions.
-- [ ] Add `eval_jobs` for one row per suite-version sample and model.
-- [ ] Add job status: `queued`, `running`, `completed`, `failed`, `cancelled`.
-- [ ] Add `eval_job_attempts` to preserve retry and failure history.
-- [ ] Keep `eval_results` as the latest accepted result per job for leaderboard and export queries.
-- [ ] Add `sample_hash`, `suite_hash`, and `model_config_hash` fields needed for future changed-only reruns.
+- [x] Replace artifact-import assumptions in `eval_runs` with operational run state.
+- [x] Add `status` to runs: `queued`, `running`, `completed`, `failed`, `cancelled`.
+- [x] Add run timestamps for queued, started, completed, and cancelled states.
+- [x] Add run creator fields from dashboard auth.
+- [x] Add `eval_run_suites` for runs that include one or more suite versions.
+- [x] Add `eval_jobs` for one row per suite-version sample and model.
+- [x] Add job status: `queued`, `running`, `completed`, `failed`, `cancelled`.
+- [x] Add `eval_job_attempts` to preserve retry and failure history.
+- [x] Keep `eval_results` as the latest accepted result per job for leaderboard and export queries.
+- [x] Add `sample_hash`, `suite_hash`, and `model_config_hash` fields needed for future changed-only reruns.
 
 ## Phase 3: Suite Authoring CRUD
 
-- [ ] Add D1 tables for suites, drafts, draft samples, versions, and version samples.
-- [ ] Seed the four canonical suites.
-- [ ] Build dashboard suite list and detail pages.
-- [ ] Support creating suite drafts from scratch.
-- [ ] Support cloning a draft from the current published version.
-- [ ] Support editing draft metadata.
-- [ ] Support adding, editing, and archiving draft samples.
-- [ ] Preserve archived samples in history.
-- [ ] Use free-form category strings.
-- [ ] Enforce stable sample ids within a suite.
-- [ ] Validate sample prompts, targets, accepted aliases, tags, category, and difficulty before freezing a version.
-- [ ] Freeze a draft into an immutable ready version with a globally unique human version name.
+- [x] Add D1 tables for suites, drafts, draft samples, versions, and version samples.
+- [x] Seed the four canonical suites.
+- [x] Build dashboard suite list and detail pages.
+- [x] Support creating suite drafts from scratch.
+- [x] Support cloning a draft from the current published version.
+- [x] Support editing draft metadata.
+- [x] Support adding, editing, and archiving draft samples.
+- [x] Preserve archived samples in history.
+- [x] Use free-form category strings.
+- [x] Enforce stable sample ids within a suite.
+- [x] Validate sample prompts, targets, accepted aliases, tags, category, and difficulty before freezing a version.
+- [x] Freeze a draft into an immutable ready version with a globally unique human version name.
 
 ## Phase 4: Dashboard Run Management
 
-- [ ] Add a dashboard run creation flow.
-- [ ] Allow runs against one or more ready or published suite versions.
-- [ ] Allow model selection only from `src/data/models.ts`.
-- [ ] Remove `defaultEnabled` from the model registry.
-- [ ] Insert runs, run suites, and jobs into D1 before enqueueing work.
-- [ ] Enqueue benchmark jobs with `sendBatch` in chunks.
-- [ ] Show active, completed, failed, and cancelled runs.
-- [ ] Show per-run progress by queued, running, completed, failed, and cancelled jobs.
-- [ ] Show per-suite and per-model progress inside a run.
-- [ ] Add run cancellation.
-- [ ] Add single-job retry.
-- [ ] Add retry-all-failed for a run.
-- [ ] Add retry failed jobs by suite.
-- [ ] Add retry failed jobs by model.
-- [ ] Ensure cancelled runs never update public leaderboard data.
+- [x] Add a dashboard run creation flow.
+- [x] Allow runs against one or more ready or published suite versions.
+- [x] Allow model selection only from `src/data/models.ts`.
+- [x] Remove `defaultEnabled` from the model registry.
+- [x] Insert runs, run suites, and jobs into D1 before enqueueing work.
+- [x] Enqueue benchmark jobs with `sendBatch` in chunks.
+- [x] Show active, completed, failed, and cancelled runs.
+- [x] Show per-run progress by queued, running, completed, failed, and cancelled jobs.
+- [x] Show per-suite and per-model progress inside a run.
+- [x] Add run cancellation.
+- [x] Add single-job retry.
+- [x] Add retry-all-failed for a run.
+- [x] Add retry failed jobs by suite.
+- [x] Add retry failed jobs by model.
+- [x] Ensure cancelled runs never update public leaderboard data.
 
 ## Phase 5: Queue Consumer
 
-- [ ] Load jobs, runs, suite version samples, and registered model config from D1/code.
-- [ ] No-op and acknowledge jobs for cancelled runs.
-- [ ] Idempotently skip completed jobs.
-- [ ] Claim queued or failed jobs before calling the provider.
-- [ ] Call OpenRouter with registered model settings.
-- [ ] Score model output with the current deterministic scorer.
-- [ ] Record every attempt in `eval_job_attempts`.
-- [ ] Upsert latest accepted result in `eval_results`.
-- [ ] Update job status and attempts.
-- [ ] Aggregate run metrics from D1.
-- [ ] Finalize a run when every job is terminal.
+- [x] Load jobs, runs, suite version samples, and registered model config from D1/code.
+- [x] No-op and acknowledge jobs for cancelled runs.
+- [x] Idempotently skip completed jobs.
+- [x] Claim queued or failed jobs before calling the provider.
+- [x] Call OpenRouter with registered model settings.
+- [x] Score model output with the current deterministic scorer.
+- [x] Record every attempt in `eval_job_attempts`.
+- [x] Upsert latest accepted result in `eval_results`.
+- [x] Update job status and attempts.
+- [x] Aggregate run metrics from D1.
+- [x] Finalize a run when every job is terminal.
 
 ## Phase 6: Publishing And Homepage
 
-- [ ] Require 100% benchmark coverage before publishing a ready suite version.
-- [ ] Publish one version per suite while archiving the previous published version.
-- [ ] Update public queries to read only published suite versions and completed public runs.
-- [ ] Allow the homepage to show a mix of suite versions and label each suite/version clearly.
-- [ ] Keep the previous completed leaderboard visible if a newly published version has no public completed run yet.
-- [ ] Replace static sample manifest rendering with D1-backed published suite samples.
-- [ ] Update methodology copy to describe cloud execution, D1 persistence, and suite versioning.
+- [x] Require 100% benchmark coverage before publishing a ready suite version.
+- [x] Publish one version per suite while archiving the previous published version.
+- [x] Update public queries to read only published suite versions and completed public runs.
+- [x] Allow the homepage to show a mix of suite versions and label each suite/version clearly.
+- [x] Keep the previous completed leaderboard visible if a newly published version has no public completed run yet.
+- [x] Replace static sample manifest rendering with D1-backed published suite samples.
+- [x] Update methodology copy to describe cloud execution, D1 persistence, and suite versioning.
 
 ## Phase 7: Exports
 
-- [ ] Keep exports one-way from D1.
-- [ ] Export run JSON from D1 without requiring run artifacts.
-- [ ] Export run CSV from D1.
-- [ ] Include suite ids, suite version names, sample stable ids, prompts, targets, model ids, scores, outputs, errors, latency, tokens, and cost.
-- [ ] Add dashboard export controls.
+- [x] Keep exports one-way from D1.
+- [x] Export run JSON from D1 without requiring run artifacts.
+- [x] Export run CSV from D1.
+- [x] Include suite ids, suite version names, sample stable ids, prompts, targets, model ids, scores, outputs, errors, latency, tokens, and cost.
+- [x] Add dashboard export controls.
 
 ## Phase 8: Legacy Cleanup
 
-- [ ] Remove CLI benchmark execution from the product path.
-- [ ] Remove JSON import documentation.
-- [ ] Remove SQL import generation from cloud workflows.
-- [ ] Remove local publish/import instructions from README.
+- [x] Remove CLI benchmark execution from the product path.
+- [x] Remove JSON import documentation.
+- [x] Remove SQL import generation from cloud workflows.
+- [x] Remove local publish/import instructions from README.
 - [ ] Keep reusable scoring, schema, OpenRouter, and metric helpers only where cloud execution uses them.
 - [ ] Update tests around cloud execution and suite authoring only.
 

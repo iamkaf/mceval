@@ -27,8 +27,4 @@ MCEval samples should be hand-written, small, and deterministic.
 - Add tags for topic and difficulty.
 - Avoid broad essay prompts until a deterministic scorer exists.
 
-Validate the suite with:
-
-```bash
-corepack pnpm run mceval -- samples
-```
+Validate drafts from the dashboard before freezing a ready version.
