@@ -114,6 +114,9 @@ export default async function Home() {
                   Runs are artifact-first: prompts, model ids, scorer output, latency, tokens, and cost are persisted before
                   publication. Deterministic scoring is preferred over model-graded judgment.
                 </Text>
+                <Text variant="secondary" size="sm">
+                  Evals use each model&apos;s default reasoning level unless a run artifact explicitly says otherwise.
+                </Text>
                 {leaderboard.updatedAt ? (
                   <Text variant="mono-secondary">
                     Updated {new Date(leaderboard.updatedAt).toISOString().slice(0, 10)}

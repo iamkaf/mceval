@@ -2,7 +2,9 @@
 
 Open-source Minecraft AI evaluation.
 
-MCEval is a small benchmark harness and public leaderboard for measuring how well language models understand Minecraft: vanilla mechanics, versions, modding vocabulary, loaders, APIs, and ecosystem details.
+MCEval is a small benchmark harness and public leaderboard for measuring how well language models understand Minecraft: vanilla mechanics, versions, modding concepts, platforms, and ecosystem details.
+
+Published evaluations use each model's default reasoning level unless a run artifact explicitly states otherwise.
 
 The project is intentionally boring where it matters:
 

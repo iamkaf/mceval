@@ -12,7 +12,7 @@ export type EvaluatedModel = {
 export const evaluatedModels = [
   {
     provider: "OpenAI",
-    displayName: "GPT-5.5 Pro",
+    displayName: "GPT-5.5",
     modelId: "openai/gpt-5.5-pro",
     icon: "/icons/svgl/openai.svg",
     iconAlt: "OpenAI",

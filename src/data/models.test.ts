@@ -10,6 +10,14 @@ describe("evaluated model registry", () => {
     expect(evaluatedModels.some((entry) => entry.provider === "Meta")).toBe(false);
     expect(evaluatedModels).toContainEqual(
       expect.objectContaining({
+        provider: "OpenAI",
+        displayName: "GPT-5.5",
+        modelId: "openai/gpt-5.5-pro",
+      }),
+    );
+    expect(evaluatedModels.some((entry) => entry.displayName === "GPT-5.5 Pro")).toBe(false);
+    expect(evaluatedModels).toContainEqual(
+      expect.objectContaining({
         provider: "Alibaba",
         displayName: "Qwen3.6 Max Preview",
         modelId: "qwen/qwen3.6-max-preview",
