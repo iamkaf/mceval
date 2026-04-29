@@ -63,7 +63,7 @@ describe("OpenRouter client", () => {
       runOpenRouterChat({
         client: {
           chat: {
-            send: async () => ({ choices: [{ message: { content: "" } }] }),
+            send: async () => ({ model: "openai/gpt-4.1-mini", choices: [{ message: { content: "" } }] }),
           },
         },
         model: "openai/gpt-4.1-mini",

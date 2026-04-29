@@ -27,7 +27,6 @@ export type ModelCallResult = {
 export type ModelCaller = (input: ModelCallInput) => Promise<ModelCallResult>;
 
 export async function runEvalCase({
-  testCase,
   sample,
   model,
   callModel,
@@ -35,34 +34,27 @@ export async function runEvalCase({
   scorer = includesAnyScorer,
   suiteId = "",
 }: {
-  testCase?: EvalSample;
-  sample?: EvalSample;
+  sample: EvalSample;
   model: EvalModel;
   callModel: ModelCaller;
   runId: string;
   scorer?: Scorer;
   suiteId?: string;
 }): Promise<EvalResult> {
-  const resolvedSample = sample ?? testCase;
-
-  if (!resolvedSample) {
-    throw new Error("runEvalCase requires a sample");
-  }
-
   try {
     const response = await callModel({
-      prompt: resolvedSample.input,
-      sample: resolvedSample,
+      prompt: sample.input,
+      sample,
       model,
       suiteId,
       runId,
     });
-    const score = scorer.score({ sample: resolvedSample, output: response.text });
+    const score = scorer.score({ sample, output: response.text });
 
     return {
       runId,
       modelId: model.modelId,
-      sampleId: resolvedSample.id,
+      sampleId: sample.id,
       output: response.text,
       extracted: score.extracted,
       latencyMs: response.latencyMs,
@@ -74,7 +66,7 @@ export async function runEvalCase({
     return {
       runId,
       modelId: model.modelId,
-      sampleId: resolvedSample.id,
+      sampleId: sample.id,
       output: "",
       latencyMs: 0,
       score: { name: scorer.name, score: null },

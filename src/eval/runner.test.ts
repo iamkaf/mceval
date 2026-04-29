@@ -18,7 +18,7 @@ const sample: EvalSample = {
   target: "Alpha 1.2.0",
 };
 
-describe("scoring compatibility", () => {
+describe("scoring", () => {
   it("scores exact and contained target answers", () => {
     expect(scoreCaseOutput(sample, "Alpha 1.2.0")).toBe(1);
     expect(scoreCaseOutput(sample, "The Nether was added in Alpha 1.2.0.")).toBe(1);

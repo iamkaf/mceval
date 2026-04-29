@@ -17,7 +17,7 @@ MCEval is an open-source Minecraft AI evaluation project: a small, inspectable h
 - [x] Make benchmark execution consume named model sets from the registry.
 - [x] Add one-command local run, local import, remote import, and publish workflows.
 - [x] Add explicit dry-run and verification support for remote D1 imports.
-- [x] Replace static leaderboard placeholders with D1-backed public leaderboard aggregation.
+- [x] Replace static leaderboard sample data with D1-backed public leaderboard aggregation.
 - [ ] Publish the first real run to remote D1.
 
 ## Phase 1 — credible evaluation core

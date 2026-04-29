@@ -71,7 +71,7 @@ export async function runOpenRouterChat({
     appTitle: "MCEval",
   });
   const latencyMs = Math.round(performance.now() - start);
-  const normalized = normalizeChatResult(raw, model);
+  const normalized = normalizeChatResult(raw);
 
   if (!normalized.text.trim()) {
     throw new Error(`OpenRouter returned an empty response for ${model}`);
@@ -84,10 +84,7 @@ export async function runOpenRouterChat({
   };
 }
 
-function normalizeChatResult(
-  raw: unknown,
-  fallbackModel: string,
-): Pick<OpenRouterChatResult, "text" | "modelId" | "usage"> {
+function normalizeChatResult(raw: unknown): Pick<OpenRouterChatResult, "text" | "modelId" | "usage"> {
   const result = raw as {
     model?: string;
     choices?: Array<{ message?: { content?: unknown } }>;
@@ -114,6 +111,9 @@ function normalizeChatResult(
 
   const content = result.choices?.[0]?.message?.content;
   const text = typeof content === "string" ? content : "";
+  if (typeof result.model !== "string" || !result.model.trim()) {
+    throw new Error("OpenRouter response is missing a model id.");
+  }
   const costDetails = result.usage?.costDetails;
   const snakeCostDetails = result.usage?.cost_details;
   const usage = result.usage
@@ -137,7 +137,7 @@ function normalizeChatResult(
 
   return {
     text,
-    modelId: result.model ?? fallbackModel,
+    modelId: result.model,
     usage,
   };
 }
