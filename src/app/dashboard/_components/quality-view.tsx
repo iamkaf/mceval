@@ -79,11 +79,11 @@ function RunQualityDetail({ detail }: { detail: BenchmarkRunDetail }) {
         <MetricCard label="Accuracy" value={formatAccuracy(run.accuracy)} />
         <MetricCard
           label="Error rate"
-          value={`${((errors.length / results.length) * 100).toFixed(1)}%`}
+          value={formatRate(errors.length, results.length)}
         />
         <MetricCard
           label="Unscored rate"
-          value={`${((unscored.length / results.length) * 100).toFixed(1)}%`}
+          value={formatRate(unscored.length, results.length)}
         />
         <MetricCard label="Total cost" value={formatCost(run.totalCost)} />
       </div>
@@ -167,6 +167,10 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 
 function formatAccuracy(value: number | null): string {
   return value === null ? "—" : `${(value * 100).toFixed(1)}%`;
+}
+
+function formatRate(count: number, total: number): string {
+  return total === 0 ? "—" : `${((count / total) * 100).toFixed(1)}%`;
 }
 
 function formatCost(value: number): string {

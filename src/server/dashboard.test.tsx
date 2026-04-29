@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { DashboardShell } from "../app/dashboard/_components/dashboard-shell";
 import { ModelsView } from "../app/dashboard/_components/models-view";
+import { QualityView } from "../app/dashboard/_components/quality-view";
 import { RunsView } from "../app/dashboard/_components/runs-view";
 import { SuitesView } from "../app/dashboard/_components/suites-view";
 
@@ -108,5 +109,39 @@ describe("dashboard views", () => {
     expect(html).toContain("Leaderboard and cost-performance analysis.");
     expect(html).toContain("GPT-5.5");
     expect(html).toContain("$0.001000");
+  });
+
+  it("renders quality rates for runs without results", () => {
+    const run = {
+      id: "benchmark_empty",
+      status: "queued",
+      suiteId: "knowledge",
+      suiteName: "Minecraft Feature and History Knowledge",
+      startedAt: "2026-04-29T00:00:00.000Z",
+      completedAt: "2026-04-29T00:00:00.000Z",
+      modelCount: 0,
+      resultCount: 0,
+      scoredCount: 0,
+      errorCount: 0,
+      accuracy: null,
+      meanScore: null,
+      totalCost: 0,
+      totalTokens: 0,
+      meanLatencyMs: null,
+      suiteVersion: "MCHistory1",
+      suiteSampleCount: 0,
+      suiteSampleHash: "hash",
+      suiteSourcePath: "d1:suite_versions",
+      harnessVersion: "cloud-v1",
+      models: [],
+    };
+
+    const html = renderToStaticMarkup(
+      <QualityView runs={[run]} runDetail={{ run, results: [] }} />,
+    );
+
+    expect(html).toContain("Error rate");
+    expect(html).toContain("Unscored rate");
+    expect(html).not.toContain("NaN");
   });
 });
