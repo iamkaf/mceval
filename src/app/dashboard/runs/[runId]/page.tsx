@@ -11,8 +11,8 @@ type RunPageProps = {
 
 export default async function RunPage({ params }: RunPageProps) {
   const { runId } = await params;
-  const { logout, runtimeEnv } = await requireDashboardAccess(`/dashboard/runs/${encodeURIComponent(runId)}`);
+  const { runtimeEnv } = await requireDashboardAccess(`/dashboard/runs/${encodeURIComponent(runId)}`);
   const detail = runtimeEnv.DB ? await getBenchmarkRunDetail(runtimeEnv.DB, runId) : null;
 
-  return detail ? <RunDetailView detail={detail} logout={logout} /> : <MissingRunView runId={runId} logout={logout} />;
+  return detail ? <RunDetailView detail={detail} /> : <MissingRunView runId={runId} />;
 }

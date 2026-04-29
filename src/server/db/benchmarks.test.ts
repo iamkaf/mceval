@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   getBenchmarkRunDetail,
   getModelBenchmarkHistory,
+  getModelLatestResults,
   listLatestLeaderboard,
+  listLatestLeaderboardByCategory,
   listRecentBenchmarkRuns,
   mapEvalResultRow,
   mapEvalRunRow,
@@ -26,6 +28,10 @@ function createDb(rows: Record<string, unknown[]>): D1DatabaseLike {
             key = "modelRuns";
           } else if (normalized.includes("FROM eval_results") && normalized.includes("GROUP BY model_id")) {
             key = "leaderboard";
+          } else if (normalized.includes("json_extract") && normalized.includes("GROUP BY er.model_id")) {
+            key = "categories";
+          } else if (normalized.includes("FROM eval_results") && normalized.includes("es.input")) {
+            key = `modelResults:${bound[3]}`;
           } else if (normalized.includes("FROM eval_results")) {
             key = `results:${bound[0]}`;
           }
@@ -180,5 +186,48 @@ describe("benchmark D1 queries", () => {
       runs: [{ suiteSampleHash: "hash123" }],
       results: [{ sampleId: "knowledge-001" }],
     });
+  });
+
+  it("aggregates category accuracy for the latest run", async () => {
+    const categoryRow = {
+      model_id: "openai/gpt-5.4-mini",
+      category: "knowledge",
+      accuracy: 0.75,
+    };
+    const db = createDb({ runs: [runRow], categories: [categoryRow] });
+
+    await expect(listLatestLeaderboardByCategory(db)).resolves.toEqual([
+      { modelId: "openai/gpt-5.4-mini", category: "knowledge", accuracy: 0.75 },
+    ]);
+  });
+
+  it("returns empty category leaderboard when no runs exist", async () => {
+    const db = createDb({});
+    await expect(listLatestLeaderboardByCategory(db)).resolves.toEqual([]);
+  });
+
+  it("loads latest per-sample results for a model", async () => {
+    const modelResultRow = {
+      ...resultRow,
+      input: "Which Minecraft update added the Nether?",
+      target: "Alpha 1.2.0",
+      metadata_json: '{"category":"knowledge"}',
+    };
+    const db = createDb({ runs: [runRow], "modelResults:openai/gpt-5.4-mini": [modelResultRow] });
+
+    const results = await getModelLatestResults(db, "openai/gpt-5.4-mini");
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({
+      modelId: "openai/gpt-5.4-mini",
+      sampleId: "knowledge-001",
+      input: "Which Minecraft update added the Nether?",
+      target: "Alpha 1.2.0",
+    });
+    expect(results[0].metadata).toEqual({ category: "knowledge" });
+  });
+
+  it("returns empty model results when no runs exist", async () => {
+    const db = createDb({});
+    await expect(getModelLatestResults(db, "openai/gpt-5.4-mini")).resolves.toEqual([]);
   });
 });

@@ -70,6 +70,18 @@ export type ModelBenchmarkHistory = {
   results: BenchmarkResultSummary[];
 };
 
+export type CategoryAccuracy = {
+  modelId: string;
+  category: string;
+  accuracy: number | null;
+};
+
+export type ModelLatestResult = BenchmarkResultSummary & {
+  input: string;
+  target: string | null;
+  metadata: Record<string, unknown> | null;
+};
+
 type EvalRunRow = {
   id: string;
   suite_id: string;
@@ -207,6 +219,92 @@ export async function listLatestLeaderboard(db: D1DatabaseLike): Promise<PublicL
     run,
     entries: results.map(mapLeaderboardRow),
   };
+}
+
+export async function listLatestLeaderboardByCategory(db: D1DatabaseLike): Promise<CategoryAccuracy[]> {
+  const runs = await listRecentBenchmarkRuns(db, 1);
+  const run = runs[0];
+
+  if (!run) {
+    return [];
+  }
+
+  const { results = [] } = await db
+    .prepare(`
+      SELECT
+        er.model_id,
+        COALESCE(json_extract(es.metadata_json, '$.category'), 'unknown') AS category,
+        AVG(er.score) AS accuracy
+      FROM eval_results er
+      INNER JOIN eval_samples es
+        ON es.suite_id = ? AND es.suite_version = ? AND es.sample_id = er.sample_id
+      WHERE er.run_id = ?
+      GROUP BY er.model_id, category
+    `)
+    .bind(run.suiteId, run.suiteVersion, run.id)
+    .all<{ model_id: string; category: string; accuracy: number | null }>();
+
+  return results.map((row) => ({
+    modelId: row.model_id,
+    category: row.category,
+    accuracy: row.accuracy,
+  }));
+}
+
+export async function getModelLatestResults(db: D1DatabaseLike, modelId: string): Promise<ModelLatestResult[]> {
+  const runs = await listRecentBenchmarkRuns(db, 1);
+  const run = runs[0];
+
+  if (!run) {
+    return [];
+  }
+
+  const { results = [] } = await db
+    .prepare(`
+      SELECT
+        er.id, er.run_id, er.suite_id, er.sample_id, er.model_id,
+        er.output, er.extracted, er.score_name, er.score,
+        er.score_explanation, er.error, er.latency_ms,
+        er.prompt_tokens, er.completion_tokens, er.total_tokens,
+        er.cost, er.upstream_inference_cost, er.raw_json,
+        es.input, es.target, es.metadata_json
+      FROM eval_results er
+      INNER JOIN eval_samples es
+        ON es.suite_id = ? AND es.suite_version = ? AND es.sample_id = er.sample_id
+      WHERE er.run_id = ? AND er.model_id = ?
+      ORDER BY er.sample_id
+    `)
+    .bind(run.suiteId, run.suiteVersion, run.id, modelId)
+    .all<{
+      id: string;
+      run_id: string;
+      suite_id: string;
+      sample_id: string;
+      model_id: string;
+      output: string;
+      extracted: string | null;
+      score_name: string;
+      score: number | null;
+      score_explanation: string | null;
+      error: string | null;
+      latency_ms: number;
+      prompt_tokens: number | null;
+      completion_tokens: number | null;
+      total_tokens: number | null;
+      cost: number | null;
+      upstream_inference_cost: number | null;
+      raw_json: string | null;
+      input: string;
+      target: string | null;
+      metadata_json: string | null;
+    }>();
+
+  return results.map((row) => ({
+    ...mapEvalResultRow(row),
+    input: row.input,
+    target: row.target,
+    metadata: row.metadata_json ? JSON.parse(row.metadata_json) : null,
+  }));
 }
 
 export async function getModelBenchmarkHistory(

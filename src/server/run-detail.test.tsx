@@ -3,11 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import { MissingRunView, RunDetailView } from "../app/dashboard/_components/run-detail-view";
 
-const logout = {
-  action: "https://auth.kaf.sh/logout",
-  body: "returnTo=https%3A%2F%2Fmceval.kaf.sh%2F",
-};
-
 const detail = {
   run: {
     id: "benchmark_<1>",
@@ -57,7 +52,7 @@ const detail = {
 
 describe("run detail view", () => {
   it("renders benchmark run detail and escapes result output", () => {
-    const html = renderToStaticMarkup(<RunDetailView detail={detail} logout={logout} />);
+    const html = renderToStaticMarkup(<RunDetailView detail={detail} />);
 
     expect(html).toContain("benchmark_&lt;1&gt;");
     expect(html).toContain("Minecraft Core Bench");
@@ -68,7 +63,7 @@ describe("run detail view", () => {
   });
 
   it("renders a safe missing run page", () => {
-    const html = renderToStaticMarkup(<MissingRunView runId="missing_<run>" logout={logout} />);
+    const html = renderToStaticMarkup(<MissingRunView runId="missing_<run>" />);
 
     expect(html).toContain("Run not found");
     expect(html).toContain("missing_&lt;run&gt;");

@@ -28,7 +28,9 @@ const logout = {
 };
 
 function renderDashboard(runs: React.ComponentProps<typeof DashboardView>["runs"]): string {
-  return renderToStaticMarkup(<DashboardView auth={auth} logout={logout} runs={runs} />);
+  return renderToStaticMarkup(
+    <DashboardView auth={auth} logout={logout} runs={runs} leaderboard={[]} latestRunDetail={null} />,
+  );
 }
 
 describe("dashboard view", () => {
