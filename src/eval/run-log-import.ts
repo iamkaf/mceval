@@ -23,7 +23,6 @@ export function buildRunLogImportSql(log: RunLog): string {
   }
 
   const statements = [
-    "BEGIN TRANSACTION;",
     `INSERT OR REPLACE INTO eval_runs (${[
       "id",
       "suite_id",
@@ -79,7 +78,6 @@ export function buildRunLogImportSql(log: RunLog): string {
     ].join(", ")});`,
     ...log.suite.samples.map((sample) => buildSampleInsert(log, sample, provenance.version)),
     ...log.results.map((result) => buildResultInsert(log, result)),
-    "COMMIT;",
   ];
 
   return `${statements.join("\n")}\n`;

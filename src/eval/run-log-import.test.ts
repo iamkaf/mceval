@@ -71,15 +71,15 @@ const log: RunLog = {
 };
 
 describe("run-log D1 import SQL", () => {
-  it("builds transactional upserts for runs and results with cost fields", () => {
+  it("builds D1 remote-compatible upserts for runs and results with cost fields", () => {
     const sql = buildRunLogImportSql(log);
 
-    expect(sql).toContain("BEGIN TRANSACTION;");
+    expect(sql).not.toContain("BEGIN TRANSACTION;");
     expect(sql).toContain("INSERT OR REPLACE INTO eval_runs");
     expect(sql).toContain("INSERT OR REPLACE INTO eval_results");
     expect(sql).toContain("0.01");
     expect(sql).toContain("Halloween Update");
-    expect(sql).toContain("COMMIT;");
+    expect(sql).not.toContain("COMMIT;");
   });
 
   it("requires provenance so imported artifacts are reproducible", () => {
