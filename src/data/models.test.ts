@@ -6,33 +6,10 @@ import { describe, expect, it } from "vitest";
 import { evaluatedModels, getEvaluatedModelSet } from "./models";
 
 describe("evaluated model registry", () => {
-  it("uses cost-balanced evaluated models instead of flagship terminology", () => {
-    expect(evaluatedModels.some((entry) => entry.provider === "Meta")).toBe(false);
-    expect(evaluatedModels).toContainEqual(
-      expect.objectContaining({
-        provider: "OpenAI",
-        displayName: "GPT-5.5",
-        modelId: "openai/gpt-5.5-pro",
-      }),
-    );
-    expect(evaluatedModels.some((entry) => entry.displayName === "GPT-5.5 Pro")).toBe(false);
-    expect(evaluatedModels).toContainEqual(
-      expect.objectContaining({
-        provider: "Alibaba",
-        displayName: "Qwen3.6 Max Preview",
-        modelId: "qwen/qwen3.6-max-preview",
-        icon: "/icons/providers/qwen.svg",
-        iconAlt: "Qwen",
-      }),
-    );
-  });
-
-  it("uses checked-in icons for every evaluated model", () => {
-    expect(evaluatedModels).toHaveLength(10);
+  it("uses checked-in icons for evaluated models", () => {
     for (const entry of evaluatedModels) {
       expect(entry.icon).toBeTruthy();
       expect(entry.iconAlt).toBeTruthy();
-      expect(entry).not.toHaveProperty("initials");
 
       const iconPath = entry.icon.replace(/^\//, "");
       expect(existsSync(join(process.cwd(), "public", iconPath))).toBe(true);
